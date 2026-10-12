@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import { DB_URI, PORT } from "../config.js";
+import { UserModel } from "./model/user.model.js";
 
 
 export default async function bootstrapDB(app) {
   try {
     await mongoose.connect(DB_URI)
     console.log('✅ Database connected');
-
+UserModel.syncIndexes()
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

@@ -1,13 +1,12 @@
+
 import './src/config.js';
 import express from 'express' 
 import { authRouter } from './src/modules/auth/index.js';
-import globalErrorHandler from './src/common/middlewares/error.middleware.js';
-import { userRouter } from './src/modules/user/index.js';
 import bootstrapDB from './src/DB/connections.db.js';
+import globalErrorHandler from './src/lib/middlewares/error.middleware.js';
 const app = express()
 
 app.use(express.json())
 bootstrapDB(app)
-app.use("/auth",authRouter)
-app.use("/users",userRouter)
+app.use("/api/auth",authRouter)
 app.use(globalErrorHandler)

@@ -1,0 +1,38 @@
+TBH APP
+
+- two models -> User & Note
+    1. User {
+        name
+        email
+        password -> hashed
+        phone -> encrypted
+        age -> 18 to 60 and not required
+    }
+    2. Note {
+        title
+        content
+        userId -> reciver
+        timeStamp
+    }
+
+- setup auth 
+    - sign up:
+        controller.js
+        - takes name email pass phone age from body
+        - send successResponse
+        service.js
+        - validate body through zod
+        - check if email exists throw conflictException
+        - hash the password through hash function in hash.security.js -> security folder
+        - encrypt the phone through encrypt function in encrypt.security.js
+        - create the user in db
+        - return the userData
+
+    - sign in:
+        controller.js
+        - takes email pass from body
+        - send successResponse
+        service.js
+        - find user by his email if found 
+        - compare entered password to account.password through bcrypt fn
+        - generate his access token in security folder
