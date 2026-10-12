@@ -28,7 +28,7 @@ if(!isExisted)throw new WrongCredintials()
 
   return await generateToken({payload:{userName:isExisted.userName},opts:{
     subject:isExisted.id,
-    expiresIn:60,
+    expiresIn:1800,
 
   }})  
 }

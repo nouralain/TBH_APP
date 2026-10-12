@@ -36,3 +36,30 @@ TBH APP
         - find user by his email if found 
         - compare entered password to account.password through bcrypt fn
         - generate his access token in security folder
+
+- get user profile
+    method: get
+    endpoint: /api/users/profile
+    - make auth middleware:
+        - check if auth in req.headers
+        - decode id from token
+        - check if theres account 
+        - put the account data in req.user
+    - make profile controller
+        - send req.user as argument
+        - return the account
+
+- update user profile 
+    method: patch
+    endpoint: /api/users
+    -make update controller
+        - send id as argument from req.user.id req.user.email and the changed data from the body
+        - validate the data before sending it to the controller
+        - findOne to get user has same email if email exist throw error
+        - findOneAndUpdate and send it the id and updated data
+
+- delete account
+    method: delete
+    endpoint: /api/user
+    
+

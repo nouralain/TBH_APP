@@ -1,5 +1,8 @@
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SIGNATURE } from "../../config.js";
+import { findById } from "../base.repository.js";
+import { NotFoundException } from "../error.exception.js";
+import { UserModel } from "../../DB/model/user.model.js";
 
 export const generateToken =async({
     payload ={},
@@ -14,4 +17,12 @@ export const verifyToken = async({
     secret=ACCESS_TOKEN_SIGNATURE
 })=>{
     return jwt.verify(token,secret)
+}
+
+export const decodeToken = async({authentication})=>{
+    const payload = await verifyToken({token:authentication})
+    if(!payload?.sub) throw new BadRequestException()
+    const account = await findById({model:UserModel , id:payload.sub})
+if(!account) throw new NotFoundException("Profile not found")
+    return account
 }
