@@ -19,8 +19,8 @@ export const verifyToken = async({
     return jwt.verify(token,secret)
 }
 
-export const decodeToken = async({authentication})=>{
-    const payload = await verifyToken({token:authentication})
+export const decodeToken = async({authorization})=>{
+    const payload = await verifyToken({token:authorization})
     if(!payload?.sub) throw new BadRequestException()
     const account = await findById({model:UserModel , id:payload.sub})
 if(!account) throw new NotFoundException("Profile not found")
