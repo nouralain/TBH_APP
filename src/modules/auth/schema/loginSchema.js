@@ -1,11 +1,7 @@
-import{z} from "zod";
+import {z} from "zod";
+import {  generalValidationFields } from "../../../lib/generalValidation.js";
 
-export const loginSchema = z.object({
-    email: z
-      .email("Invalid email address")
-      .min(1, "Email is required"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(16, "Password cannot exceed 16 characters"),
+export const loginSchema = z.strictObject({
+    email: generalValidationFields.email,
+    password:generalValidationFields.password 
   });
