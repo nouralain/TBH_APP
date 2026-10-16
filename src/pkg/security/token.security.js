@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SIGNATURE } from "../../config.js";
 import { findById } from "../base.repository.js";
-import { NotFoundException } from "../error.exception.js";
+import { NotFoundException } from "../errors/error.exception.js";
 import { UserModel } from "../../DB/model/user.model.js";
 
 export const generateToken =async({
