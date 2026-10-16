@@ -1,4 +1,4 @@
-import { ApplicationException } from "../../pkg/error.exception.js";
+import { ApplicationException } from "../../pkg/errors/error.exception.js";
 
 const globalErrorHandler =(err,req,res,next)=>{
   if (err instanceof ApplicationException) {
@@ -10,7 +10,7 @@ const globalErrorHandler =(err,req,res,next)=>{
     });
   }
 
-  res.status(500).json({ status: "error", message: "Something went wrong"       ,cause: err.cause,
+  res.status(500).json({ status: "error", message: "Something went wrong",cause: err.cause,
   });
   console.log(err);
   
