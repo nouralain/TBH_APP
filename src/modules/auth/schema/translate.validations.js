@@ -60,5 +60,11 @@ export const validationTranslation = {
             [languagesEnum.AR]: "يجب أن يكون الجنس ذكراً أو أنثى",
            [languagesEnum.EN]: "Gender must be either male or female"
         }
+    },
+    otp: {
+        len: {
+            [languagesEnum.AR]: "رمز التأكيد 6 ارقام فقط",
+           [languagesEnum.EN]: "OTP must be 6 numbers"
+        }
     }
 };

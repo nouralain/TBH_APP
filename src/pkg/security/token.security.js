@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SIGNATURE } from "../../config.js";
-import { findById } from "../base.repository.js";
+import { findById } from "../services/mongoose.services.js";
 import { NotFoundException } from "../errors/error.exception.js";
 import { UserModel } from "../../DB/model/user.model.js";
 

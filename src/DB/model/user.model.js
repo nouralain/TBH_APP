@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { genderEnum } from "../../lib/enum/gender.enum.js";
+import { providerEnum } from "../../lib/enum/provider.enum.js";
 
 const userScheme = new Schema({
 
@@ -42,6 +43,11 @@ const userScheme = new Schema({
         enum:Object.values(genderEnum),
         default:genderEnum.MALE,
     },
+    provider:{
+        type:Number,
+        enum:Object.values(providerEnum),
+        default:providerEnum.SYSTEM,
+    }
     
 
 },{
