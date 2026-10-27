@@ -1,5 +1,5 @@
 import { UserModel } from "../../../DB/model/user.model.js"
-import { deleteOne, findByIdAndUpdate } from "../../../pkg/base.repository.js"
+import { deleteOne, findByIdAndUpdate } from "../../../pkg/services/mongoose.services.js"
 
 export const deleteService = async(id)=>{
 await deleteOne({model:UserModel , filter:{_id:id}})

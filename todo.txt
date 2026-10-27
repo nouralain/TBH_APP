@@ -63,3 +63,26 @@ TBH APP
     endpoint: /api/user
     
 
+- otp
+    -setup nodemailer
+        - get the passkey and put it in env and config
+        - make html template via ai and store it in templates folder
+        - make a function that generates the code and call it in signup
+        - make the send email func and call it after generation the otp code
+        - this function set the code in redis hashed by userEmail and subject key with ttl 300sec
+    - make confirm-email api
+        -method:patch 
+        - it accepts email and otp from body
+        - search for user with same email and confirmEmail not exist and provider is system
+        - get the redis code by giving it the key and check if they r =
+        - add the isConfirmed with date now and await .save()
+        - delete all the keys from cache 
+
+    - make resend-otp api
+        - method: post
+        - first check if the ttl of the old otp ended
+            - get the ttl of the same key if its >0 throw error
+        - check if the trials of user > 3
+            - get the trials key from redis 
+        - same sign up logic so i extract it in a function
+        - store user key in redis with trials by incBy 

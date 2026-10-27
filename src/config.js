@@ -10,3 +10,7 @@ export const ENC_KEY = process.env.ENC_KEY
 export const IV_LENGTH =Number( process.env.IV_LENGTH)
 export const ENC_ALGORITHM = process.env.ENC_ALGORITHM
 export const ACCESS_TOKEN_SIGNATURE = process.env.ACCESS_TOKEN_SIGNATURE
+export const MAILER_PASSKEY = process.env.MAILER_PASSKEY
+export const MAILER_EMAIL = process.env.MAILER_EMAIL
+export const APP_NAME = process.env.APP_NAME
+export const REDIS_URL = process.env.REDIS_URL

@@ -30,7 +30,7 @@ export const errorTranslation = {
       [languagesEnum.EN]: "Validation failed"
     },
     wrongCredentials: {
-        [languagesEnum.AR]: "بيانات الاعتماد غير صحيحة",
+        [languagesEnum.AR]: "بيانات غير صحيحة",
       [languagesEnum.EN]: "Wrong credentials"
     }
 };

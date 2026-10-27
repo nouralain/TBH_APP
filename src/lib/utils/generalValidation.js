@@ -59,5 +59,11 @@ export const generalValidationFields = {
                 errorMap: () => ({ message: t.invalid[lang] }),
             })
             .transform((val) => genderEnum[val.toUpperCase()]);
-    }
+    },
+    otp: (lang) => {
+        const t = validationTranslation.otp;
+        return z
+            .string()
+            .length(6,t.len[lang])
+    },
 }
