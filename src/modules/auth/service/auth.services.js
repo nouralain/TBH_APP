@@ -11,6 +11,7 @@ import { sendEmail } from "../../../lib/utils/email/sendEmail.js"
 import { sendOtpTemplate } from "../../../lib/utils/email/templates/emailTemplate.js"
 import {  exists, expire, get, incr, remove, set,ttl } from "../../../pkg/services/redis.services.js"
 import { EmailSubject } from "../../../lib/enum/subject.enum.js"
+import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, REFRESH_TOKEN_SIGNATURE } from "../../../config.js"
 export const generateCode = ()=>{
   return Crypto.randomInt(100000,1000000).toString()
 }
@@ -68,13 +69,24 @@ if(!isExisted)throw new WrongCredintials(undefined , lang)
   const isMatched = await compare({plainText:password , hashText:isExisted.password})
   if(!isMatched)throw new WrongCredintials(undefined , lang)
 
-  return await generateToken({payload:{userName:isExisted.userName},opts:{
-    subject:isExisted.id,
-    expiresIn:1800,
+    return await getLoginCredintials({payload:isExisted , id:isExisted.id})
+}
+  
+
+export const getLoginCredintials = async({payload , id})=>{
+  const accessToken= await generateToken({payload:{userName:payload.userName},opts:{
+    subject:id,
+    expiresIn:ACCESS_TOKEN_EXPIRY,
 
   }})  
-}
+  const refreshToken= await generateToken({payload:{userName:payload.userName},secret:REFRESH_TOKEN_SIGNATURE,opts:{
+    subject:id,
+    expiresIn:REFRESH_TOKEN_EXPIRY,
 
+  }})  
+  return {accessToken,refreshToken}
+
+}
 /**
  * 1. check if email exist in cache by the ttl 
  * 2. check that otp in body same as otp in cache
