@@ -1,7 +1,7 @@
 import { languagesEnum } from "../../../lib/enum/languages.enum.js"
 import { getLang } from "../../../lib/utils/getLanguage.js"
 import successResponse from "../../../pkg/successResponse.js"
-import { loginService, registerService ,confirmOtpService,resendOtpService} from "../service/auth.services.js"
+import { loginService, registerService ,confirmOtpService,resendOtpService,signupWithGoogleService} from "../service/auth.services.js"
 import { translations } from "../translations.js"
 
 export const register =async (req,res,next)=>{
@@ -31,6 +31,15 @@ export const resendOtp = async(req,res,next)=>{
     const lang = getLang(req);
 
     const data=await resendOtpService(req.validate,lang)
+
+    successResponse(res,{data:data})
+
+}
+export const signUpWithGoogle = async(req,res,next)=>{
+    const lang = getLang(req);
+
+    const data=await signupWithGoogleService(req.body,lang)
+console.log(data);
 
     successResponse(res,{data:data})
 
