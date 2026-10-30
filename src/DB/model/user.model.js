@@ -28,12 +28,14 @@ const userScheme = new Schema({
     },
     password:{
         type:String,
-        required:true,
+        required:function(){
+          return this.provider===providerEnum.SYSTEM?true:false
+        },
 
     },
     phone:{
         type:String,
-        required:true
+        required:false
     },
     age:{
         type:Number,

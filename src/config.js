@@ -16,3 +16,4 @@ export const MAILER_PASSKEY = process.env.MAILER_PASSKEY
 export const MAILER_EMAIL = process.env.MAILER_EMAIL
 export const APP_NAME = process.env.APP_NAME
 export const REDIS_URL = process.env.REDIS_URL
+export const WEB_CLIENT_ID = process.env.WEB_CLIENT_ID

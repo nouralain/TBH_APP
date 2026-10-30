@@ -26,5 +26,11 @@ export const translations ={
     MAX_RESEND_ATTEMPTS: {
         EN: "Maximum resend OTP attempts exceeded. Please try again later.",
         AR: "لقد تجاوزت الحد الأقصى لمحاولات إعادة إرسال رمز التحقق. يرجى المحاولة لاحقاً."
+    },
+    STANDARD_LOGIN_ERROR:
+    {
+        EN: "This email is already registered using standard login. Please use your password.",
+        AR: "هذا البريد الإلكتروني مسجل بالفعل باستخدام تسجيل الدخول العادي. يرجى استخدام كلمة المرور."
+
     }
 }

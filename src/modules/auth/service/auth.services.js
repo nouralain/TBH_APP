@@ -12,6 +12,8 @@ import { sendOtpTemplate } from "../../../lib/utils/email/templates/emailTemplat
 import {  exists, expire, get, incr, remove, set,ttl } from "../../../pkg/services/redis.services.js"
 import { EmailSubject } from "../../../lib/enum/subject.enum.js"
 import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, REFRESH_TOKEN_SIGNATURE } from "../../../config.js"
+import { verifyTokenId } from "../../../lib/utils/verifyTokenId.js"
+import { providerEnum } from "../../../lib/enum/provider.enum.js"
 export const generateCode = ()=>{
   return Crypto.randomInt(100000,1000000).toString()
 }
@@ -69,18 +71,45 @@ if(!isExisted)throw new WrongCredintials(undefined , lang)
   const isMatched = await compare({plainText:password , hashText:isExisted.password})
   if(!isMatched)throw new WrongCredintials(undefined , lang)
 
-    return await getLoginCredintials({payload:isExisted , id:isExisted.id})
+    return await getLoginCredintials({payload:{userName:isExisted.userName} , id:isExisted.id})
+
+}
+
+/**
+ * 1. get the idToken and verify it
+ * 2. take the email and check if the user exist in db then gen token
+ * 3. if not exist create him in db and gen tokens
+ */
+export const signupWithGoogleService=async(body,lang)=>{
+  const { idToken } = body;
+  const payload =await verifyTokenId(idToken)
+console.log(idToken);
+
+console.log(payload);
+const {email , sub , name , picture}  = payload
+const isExisted = await findOne({model:UserModel , filter:{email:email}})
+if(!isExisted){
+  await createOne({model:UserModel , data:{userName:name , email , provider:providerEnum.GMAIL}})
+  return await getLoginCredintials({payload:{userName:name} , id:sub})
+
+}if(isExisted.provider!==providerEnum.SYSTEM){
+  return await getLoginCredintials({payload:{userName:isExisted.userName} , id:isExisted.id})
+}else{
+  throw new ConflictException({message:lang===languagesEnum.EN?translations.STANDARD_LOGIN_ERROR.EN:translations.STANDARD_LOGIN_ERROR.AR})
+}
+
+
 }
   
 
-export const getLoginCredintials = async({payload , id})=>{
-  const accessToken= await generateToken({payload:{userName:payload.userName},opts:{
-    subject:id,
+export const getLoginCredintials = async({payload={} , opts={}})=>{
+  const accessToken= await generateToken({payload,opts:{
+    ...opts,
     expiresIn:ACCESS_TOKEN_EXPIRY,
 
   }})  
-  const refreshToken= await generateToken({payload:{userName:payload.userName},secret:REFRESH_TOKEN_SIGNATURE,opts:{
-    subject:id,
+  const refreshToken= await generateToken({payload,secret:REFRESH_TOKEN_SIGNATURE,opts:{
+   ...opts,
     expiresIn:REFRESH_TOKEN_EXPIRY,
 
   }})  
