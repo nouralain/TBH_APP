@@ -2,6 +2,8 @@ import { ApplicationException } from "../../pkg/errors/error.exception.js";
 
 const globalErrorHandler =(err,req,res,next)=>{
   if (err instanceof ApplicationException) {
+    console.log(err);
+
     return res.status(err.statusCode).json({
       status: "fail",
       error: err.name,
