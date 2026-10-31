@@ -86,3 +86,44 @@ TBH APP
             - get the trials key from redis 
         - same sign up logic so i extract it in a function
         - store user key in redis with trials by incBy 
+
+NOTE:
+    1- create Note (anonymus or regular)
+        method: POST /
+
+    2- update part of the note 
+        method: patch /:noteId
+        owner of note update it -> return the updated one
+
+    3- update all the note content
+        method: PUT /replace/:noteId
+        only owner
+
+    4- update all notes title of one user
+        method: PATCH /all
+
+    ///////////////////////////////////////////////////////////////////
+
+    5- delete single note -> reciver
+        method:Delete /:noteId
+
+    6- get paginated list of note -> DESC createdAt -> search param
+        method: GET /paginate-sort
+
+    7- get one note by id
+        method: GET /:id
+
+    8- get note by its content -> search param
+        method: GET /note-by-content
+
+    9- get all 
+    
+
+    //sender might not have account but reciver must -> senderId 
+    //only reciver can delete the message
+    //only one endpoint for public and private sender  
+        1. make middleware to check if token in header -> decode it and put user data in req.user and payload
+        2. inside the main service in the createOne if the req.user sent put user.id
+
+    //refactor validation middlware to validate body , query , params -> and make the key of the schema is the body or query -> to validate all the things in one request
+    //validate message content 
