@@ -102,7 +102,7 @@ NOTE:
     4- update all notes title of one user
         method: PATCH /all
 
-    ///////////////////////////////////////////////////////////////////
+    //////////////////////////Sender/////////////////////////////////////////
 
     5- delete single note -> reciver
         method:Delete /:noteId
@@ -116,7 +116,7 @@ NOTE:
     8- get note by its content -> search param
         method: GET /note-by-content
 
-    9- get all 
+    9- get all make 3 degits enum 0 for requesting all the sended and recived mssgs 1 for requesting sending only 3 for recived only
     
 
     //sender might not have account but reciver must -> senderId 

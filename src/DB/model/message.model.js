@@ -10,8 +10,8 @@ const messageSchema = new Schema({
     type:String,
     required:true,
   },
-  senderId:{type:mongoose.Types.ObjectId , ref:User},
-  reciverId:{type:mongoose.Types.ObjectId , ref:User , required:true}
+  senderId:{type:mongoose.Types.ObjectId , ref:"User"},
+  reciverId:{type:mongoose.Types.ObjectId , ref:"User" , required:true}
 },{
 timestamps:true,
 autoIndex:true,

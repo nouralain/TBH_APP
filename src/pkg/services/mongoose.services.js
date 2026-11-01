@@ -53,12 +53,19 @@ export const create = async ({
     select = '',
     options = {},
   } = {}) => {
-    let doc = model.find(filter).select(select);
+    const query = model.find(filter).select(select);
   
-    if (options.populate) doc.populate(options.populate);
-    if (options.lean) doc.lean();
+    if (options.sort) query.sort(options.sort);
+    if (options.skip !== undefined) query.skip(options.skip);
+    if (options.limit !== undefined) query.limit(options.limit);
+    if (options.populate) query.populate(options.populate);
+    if (options.lean) query.lean();
   
-    return await doc.exec();
+    return await query.exec();
+  };
+  
+  export const countDocuments = async ({ model, filter = {} } = {}) => {
+    return await model.countDocuments(filter).exec();
   };
   
   // --- UPDATE OPERATIONS ---
