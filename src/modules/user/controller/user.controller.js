@@ -18,7 +18,7 @@ export const deleteController = async(req,res,next)=>{
 export const UpdateController = async(req,res,next)=>{
     const lang = getLang(req);
 
-   const account =  await updateService({id:req.user.id , data:req.validate})
+   const account =  await updateService({id:req.user.id , data:req.validate.body})
     successResponse(res,{message:lang===languagesEnum.EN?translations.USER_UPDATED.EN:translations.USER_UPDATED.AR ,data:account})    
 
 }

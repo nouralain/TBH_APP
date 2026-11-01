@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SIGNATURE, REFRESH_TOKEN_SIGNATURE } from "../../config.js";
 import { findById } from "../services/mongoose.services.js";
-import { NotFoundException } from "../errors/error.exception.js";
+import { BadRequestException, NotFoundException } from "../errors/error.exception.js";
 import { UserModel } from "../../DB/model/user.model.js";
 import { tokenTypeEnum } from "../../lib/enum/tokenType.enum.js";
 
@@ -26,6 +26,7 @@ return jwt.sign(payload , secret , {...opts})
 
 export const decodeToken = async({authorization,tokenType})=>{
     const payload = await verifyToken({token:authorization , secret:getTokenSignature({tokenType})})
+    console.log(payload);
     
     if(!payload?.sub) throw new BadRequestException()
     const account = await findById({model:UserModel , id:payload.sub})

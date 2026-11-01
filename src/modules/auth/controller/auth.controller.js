@@ -6,7 +6,7 @@ import { translations } from "../translations.js"
 
 export const register =async (req,res,next)=>{
     const lang = getLang(req);
-    const data=await registerService(req.validate ,lang)
+    const data=await registerService(req.validate.body ,lang)
     console.log(data);
     
 successResponse(res,{message:lang===languagesEnum.EN?translations.USER_CREATED.EN:translations.USER_CREATED.EN,status:201,data})
@@ -15,14 +15,14 @@ successResponse(res,{message:lang===languagesEnum.EN?translations.USER_CREATED.E
 export const login =async (req,res,next)=>{
     const lang = getLang(req);
 
-    const data=await loginService(req.validate,lang)
+    const data=await loginService(req.validate.body,lang)
 successResponse(res,{data:data})
 }
 
 export const confirmOtp = async(req,res,next)=>{
     const lang = getLang(req);
 
-    const data=await confirmOtpService(req.validate,lang)
+    const data=await confirmOtpService(req.validate.body,lang)
 
     successResponse(res,{data:data})
 
@@ -30,7 +30,7 @@ export const confirmOtp = async(req,res,next)=>{
 export const resendOtp = async(req,res,next)=>{
     const lang = getLang(req);
 
-    const data=await resendOtpService(req.validate,lang)
+    const data=await resendOtpService(req.validate.body,lang)
 
     successResponse(res,{data:data})
 
