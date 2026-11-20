@@ -22,19 +22,27 @@ export const validationTranslation = {
        [languagesEnum.AR]: "لا يمكن أن يكون المحتوى فارغاً"
       }
     },
-    reciverId: {
+    receiverId: {
       required: {
-       [languagesEnum.EN]: "Receiver ID is required",
-       [languagesEnum.AR]: "معرف المستقبل مطلوب"
+       [languagesEnum.EN]: "Send the receiver as receiverId or receiverUsername (only one of them)",
+       [languagesEnum.AR]: "أرسل المستقبل باستخدام receiverId أو receiverUsername (واحد فقط)"
       },
       invalid: {
        [languagesEnum.EN]: "Invalid receiver ID",
        [languagesEnum.AR]: "معرف المستقبل غير صالح"
       }
     },
-    updateEmpty: {
-      [languagesEnum.EN]: "At least one field is required",
-      [languagesEnum.AR]: "يجب إرسال حقل واحد على الأقل"
+    receiverUsername: {
+      invalid: {
+       [languagesEnum.EN]: "Invalid receiver username",
+       [languagesEnum.AR]: "اسم المستخدم للمستقبل غير صالح"
+      }
+    },
+    isAnonymous: {
+      invalid: {
+       [languagesEnum.EN]: "isAnonymous must be true or false",
+       [languagesEnum.AR]: "يجب أن تكون قيمة isAnonymous صح أو خطأ"
+      }
     },
     noteId: {
       required: {

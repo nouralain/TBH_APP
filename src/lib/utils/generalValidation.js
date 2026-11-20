@@ -54,6 +54,18 @@ export const generalValidationFields = {
             .enum(["MALE", "FEMALE", "male", "female"], { error: t.invalid[lang] })
             .transform((val) => genderEnum[val.toUpperCase()]);
     },
+    // the public handle in the share link, ex: nour_4821
+    // same rules as the "username" field in user.model.js
+    username: (lang) => {
+        const t = validationTranslation.username;
+        return z
+            .string()
+            .trim()
+            .toLowerCase()
+            .min(3, t.min[lang])
+            .max(30, t.max[lang])
+            .regex(/^[a-z0-9_.]+$/, t.regex[lang]);
+    },
     otp: (lang) => {
         const t = validationTranslation.otp;
         return z

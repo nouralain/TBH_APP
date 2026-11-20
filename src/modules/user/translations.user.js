@@ -14,6 +14,18 @@ export const translations ={
     TOKEN_STILL_VALID: {
         EN: "Token is still valid",
         AR: "رمز الوصول لا يزال صالحاً"
+    },
+    USERNAME_TAKEN: {
+        EN: "This username is already taken",
+        AR: "اسم المستخدم مستخدم بالفعل"
+    },
+    UNBLOCKED_ALL: {
+        EN: "All blocked users were unblocked",
+        AR: "تم إلغاء حظر جميع المستخدمين"
+    },
+    USER_NOT_FOUND: {
+        EN: "User not found",
+        AR: "المستخدم غير موجود"
     }
    
 }

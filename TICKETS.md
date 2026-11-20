@@ -60,7 +60,13 @@ The inline middleware on `POST /api/messages` references undefined `lang`, and a
 
 ---
 
-## Epic B — Anonymous vs. named messages (core feature)
+## Epic B — Anonymous vs. named messages (core feature) — ✅ DONE
+> On branch `epic-b-anonymous-messages`.
+> - **B5 decision:** messages can't be edited at all → `PATCH /:noteId`, `PUT /replace/:noteId`, `PATCH /all` removed.
+> - **B6 decision:** renamed to `receiverId`. Run `npm run migrate:receiverId` once against each database.
+> - **Q3 decision (C6 partly pulled in):** receivers can turn off anonymous messages (`allowAnonymousMessages`) and block senders
+>   by message (`POST|DELETE /api/messages/:noteId/block-sender`, `DELETE /api/users/blocked` to clear all). Guests can't be blocked yet (no account → needs IP-based blocking, still in C6).
+> - Users created before B4 have no `username` until they set one with `PATCH /api/users`.
 
 ### B1. Explicit `isAnonymous` flag — P0 · M
 Today "anonymous" just means "no token". A logged-in user can't choose to be anonymous, and when they are logged in their `senderId` is returned to the receiver by `GET /`, `GET /:id`, `paginate-sort` → **anonymity leaks**.
