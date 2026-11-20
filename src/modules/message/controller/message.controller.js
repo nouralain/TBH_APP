@@ -1,5 +1,6 @@
 import { languagesEnum } from "../../../lib/enum/languages.enum.js";
 import { getLang } from "../../../lib/utils/getLanguage.js";
+import { hashIp } from "../../../lib/utils/ipHash.js";
 import successResponse from "../../../pkg/successResponse.js"
 import * as service from "../service/message.service.js"
 import { translations } from "../translations.message.js";
@@ -7,9 +8,17 @@ import { translations } from "../translations.message.js";
 export const createMessage = async (req, res) => {
   const lang = getLang(req)
   // req.user is only set when the sender is logged in (optionalAuthentication)
-  const data = await service.createMessageService(req.validate.body, req.user?.id, lang)
+  // guests only: the HMAC of their IP, so the receiver can block them later (C6)
+  const senderIpHash = req.user ? undefined : hashIp(req.ip)
+  const data = await service.createMessageService(req.validate.body, req.user?.id, lang, senderIpHash)
   successResponse(res, { message: "done", status: 201, data })
 }
+
+export const reportMessage = async (req, res) => {
+  const lang = getLang(req);
+  await service.reportService(req.validate.params.noteId, req.user.id, req.validate.body.reason, lang);
+  successResponse(res, { message: lang === languagesEnum.EN ? translations.messageReported.EN : translations.messageReported.AR });
+};
 
 export const deleteMessage = async (req, res) => {
   const lang = getLang(req);
@@ -46,6 +55,6 @@ export const getMessagesByContent = async (req, res) => {
 };
 
 export const getAllMessages = async (req, res) => {
-  const data = await service.getAllService(req.validate.query.type, req.user.id);
+  const data = await service.getAllService(req.validate.query, req.user.id);
   successResponse(res, { message: "done", data });
 };

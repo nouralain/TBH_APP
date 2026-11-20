@@ -101,7 +101,17 @@ Typo across model, schema, services. Do it now before the frontend depends on it
 
 ---
 
-## Epic C — Restrictions & validation
+## Epic C — Restrictions & validation — ✅ DONE
+> On branch `epic-c-restrictions`.
+> - **C1:** title ≤ 100, content ≤ 1000 (Zod + Mongoose share `MESSAGE_LIMITS`), body limit 10kb → 413 (error handler now passes through body-parser 4xx).
+> - **C2:** search input is escaped (`escapeRegex`) and capped at 100 chars.
+> - **C3:** `GET /api/messages` takes `page`/`limit`; every list returns `{ notes, total, page, pages }`.
+> - **C4:** indexes `{receiverId,createdAt}`, `{senderId,createdAt}`, `report.reportedAt` (sparse); synced on startup.
+> - **C5:** anonymous messages reject links and a small EN/AR bad-word list (`src/lib/utils/moderation.js`); named messages aren't filtered.
+>   `POST /api/messages/:noteId/report` `{ reason? }` (receiver only) stores `report.reason` + `report.reportedAt`.
+> - **C6 (guests):** guest messages store `senderIpHash` (HMAC-SHA256 of the IP, `select:false`); `block-sender` on a guest message adds it to
+>   `blockedGuests`. Guest messages from before this change can't be blocked. New env: `IP_HASH_SECRET` (falls back to `ACCESS_TOKEN_SIGNATURE`),
+>   `TRUST_PROXY` (set when deployed behind a proxy, else every guest has the proxy's IP).
 
 ### C1. Field limits on messages — P0 · S
 No `max` on title/content → someone can post megabytes. Add e.g. title ≤ 100, content ≤ 1000 chars, in Zod **and** Mongoose. Add `express.json({ limit: "10kb" })`.

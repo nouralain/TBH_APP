@@ -43,4 +43,17 @@ export const translations ={
             AR: "تم إلغاء حظر المرسل",
             EN: "Sender unblocked",
           },
+          // C5 moderation (anonymous messages only)
+          linksNotAllowed: {
+            AR: "لا يُسمح بالروابط في الرسائل المجهولة",
+            EN: "Links aren't allowed in anonymous messages",
+          },
+          inappropriateContent: {
+            AR: "الرسالة تحتوي على كلمات غير لائقة",
+            EN: "Your message contains inappropriate words",
+          },
+          messageReported: {
+            AR: "تم الإبلاغ عن الرسالة",
+            EN: "Message reported",
+          },
 }

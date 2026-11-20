@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { validationTranslation } from "./translation.validation.js";
+import { MESSAGE_LIMITS } from "../../../DB/model/message.model.js";
 
 const objectIdRegex = /^[a-f\d]{24}$/i;
 
@@ -10,12 +11,14 @@ const createMessage = (lang) => {
     title: z
       .string({ error: t.title.required[lang] })
       .trim()
-      .min(1, t.title.min[lang]),
+      .min(1, t.title.min[lang])
+      .max(MESSAGE_LIMITS.TITLE_MAX, t.title.max[lang]),
 
     content: z
       .string({ error: t.content.required[lang] })
       .trim()
-      .min(1, t.content.min[lang]),
+      .min(1, t.content.min[lang])
+      .max(MESSAGE_LIMITS.CONTENT_MAX, t.content.max[lang]),
 
     // the sender can choose the receiver by his id OR by his username (from the share link)
     // both are optional here, but the .refine below makes sure exactly one of them is sent
@@ -91,11 +94,34 @@ export const blockSenderSchema = (lang) => {
   });
 };
 
+// POST /api/messages/:noteId/report -> optional reason
+export const reportMessageSchema = (lang) => {
+  const t = validationTranslation.message;
+
+  return z.object({
+    params: noteIdParams(lang),
+    body: z.strictObject({
+      reason: z
+        .string({ error: t.reportReason.invalid[lang] })
+        .trim()
+        .max(MESSAGE_LIMITS.REPORT_REASON_MAX, t.reportReason.max[lang])
+        .optional(),
+    }),
+  });
+};
+
 export const paginateMessagesSchema = (lang) => {
+  const t = validationTranslation.message;
+
   return z.object({
     query: z.object({
       ...paging,
-      search: z.string().trim().optional(),
+      // C2: capped so nobody can send a huge search pattern
+      search: z
+        .string()
+        .trim()
+        .max(MESSAGE_LIMITS.SEARCH_MAX, t.search.max[lang])
+        .optional(),
     }),
   });
 };
@@ -114,7 +140,8 @@ export const getMessagesByContentSchema = (lang) => {
       search: z
         .string({ error: t.search.required[lang] })
         .trim()
-        .min(1, t.search.required[lang]),
+        .min(1, t.search.required[lang])
+        .max(MESSAGE_LIMITS.SEARCH_MAX, t.search.max[lang]),
       ...paging,
     }),
   });
@@ -128,6 +155,8 @@ export const getAllMessagesSchema = (lang) => {
       type: z
         .enum(["0", "1", "2"], { error: t.type.invalid[lang] })
         .default("0"),
+      // C3: this list is paginated too
+      ...paging,
     }),
   });
 };
