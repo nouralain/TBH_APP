@@ -5,6 +5,8 @@ import { languagesEnum } from "../../../lib/enum/languages.enum.js";
 import { BadRequestException, ForbiddenException, NotFoundException } from "../../../pkg/errors/error.exception.js";
 import { countDocuments, createOne, deleteOne, find, findById, findOne, updateOne } from "../../../pkg/services/mongoose.services.js";
 import { translations } from "../translations.message.js";
+import { escapeRegex } from "../../../lib/utils/escapeRegex.js";
+import { containsBadWord, containsLink } from "../../../lib/utils/moderation.js";
 
 /* ============================== helpers ============================== */
 
@@ -73,6 +75,28 @@ const formatMessage = (message, viewerId) => {
 const notFoundError = (lang) =>
   new NotFoundException(lang === languagesEnum.EN ? translations.notFound.EN : translations.notFound.AR, lang)
 
+// picks the EN or AR text of a translations entry
+const tr = (key, lang) => (lang === languagesEnum.AR ? translations[key].AR : translations[key].EN)
+
+// C3: every list endpoint returns the same shape { notes, total, page, pages }
+// (an empty search result is just notes: [] -> never a 404)
+const findPaginated = async ({ filter, page, limit, userId }) => {
+  const [notes, total] = await Promise.all([
+    find({model:MessageModel, filter, options:{sort:{createdAt:-1}, skip:(page-1)*limit, limit, lean:true, populate:POPULATE_USERS}}),
+    countDocuments({model:MessageModel, filter}),
+  ])
+
+  return {
+    notes: notes.map((note) => formatMessage(note, userId)),
+    total,
+    page,
+    pages: Math.ceil(total/limit),
+  }
+}
+
+// C2: user input is escaped -> it's matched as plain text, never as a regex pattern
+const textMatch = (search) => ({ $regex: escapeRegex(search), $options: "i" })
+
 /* ============================== create ============================== */
 
 /**
@@ -80,14 +104,17 @@ const notFoundError = (lang) =>
  * 2. if not found -> 404
  * 3. you can't send a message to yourself
  * 4. if the receiver blocked this sender -> 403
+ *    (logged in -> by user id, guest -> by the HMAC of his IP)
  * 5. decide if the message is anonymous:
  *      - guest (no senderId)  -> ALWAYS anonymous, he has no name to show anyway
  *      - logged in            -> what he chose, and anonymous if he didn't choose
  * 6. if the receiver turned OFF anonymous messages and this one is anonymous -> 403
- * 7. create the message (we still save senderId for logged in users so they see it in
- *    their "sent" list and so the receiver can block them, formatMessage hides it from the receiver)
+ * 7. anonymous messages go through a basic filter: no links, no bad words (C5)
+ * 8. create the message (we still save senderId for logged in users so they see it in
+ *    their "sent" list and so the receiver can block them, formatMessage hides it from the receiver.
+ *    guests get senderIpHash instead, so they can be blocked too)
  */
-export const createMessageService = async({title , content , receiverId , receiverUsername , isAnonymous} , senderId , lang)=>{
+export const createMessageService = async({title , content , receiverId , receiverUsername , isAnonymous} , senderId , lang , senderIpHash)=>{
   //1
   const filter = receiverId ? { _id: receiverId } : { username: receiverUsername }
   const receiver = await findOne({model:UserModel , filter})
@@ -109,7 +136,9 @@ export const createMessageService = async({title , content , receiverId , receiv
   //4  blockedUsers is an array of ids -> we turn them to strings to compare
   //   (we don't tell him "you are blocked", just that he can't send, so it's not awkward)
   const blockedIds = (receiver.blockedUsers || []).map((id) => String(id))
-  if (senderId && blockedIds.includes(String(senderId))) {
+  const isBlockedUser = senderId && blockedIds.includes(String(senderId))
+  const isBlockedGuest = !senderId && senderIpHash && (receiver.blockedGuests || []).includes(senderIpHash)
+  if (isBlockedUser || isBlockedGuest) {
     throw new ForbiddenException(
       lang === languagesEnum.AR ? translations.cannotSendToUser.AR : translations.cannotSendToUser.EN,
       lang
@@ -127,13 +156,20 @@ export const createMessageService = async({title , content , receiverId , receiv
     )
   }
 
-  //7
+  //7  named messages carry the sender's name, so he's accountable -> only anonymous ones are filtered
+  if (finalIsAnonymous) {
+    const text = `${title} ${content}`
+    if (containsLink(text)) throw new BadRequestException(tr("linksNotAllowed", lang), lang)
+    if (containsBadWord(text)) throw new BadRequestException(tr("inappropriateContent", lang), lang)
+  }
+
+  //8
   const message = await createOne({model:MessageModel , data:{
     title,
     content,
     receiverId: receiver._id,
     isAnonymous: finalIsAnonymous,
-    ...(senderId && { senderId }),
+    ...(senderId ? { senderId } : senderIpHash && { senderIpHash }),
   }})
 
   // we return a small object, the sender doesn't need the full document
@@ -162,51 +198,61 @@ export const createMessageService = async({title , content , receiverId , receiv
  *
  * 1. find the message
  * 2. only the receiver of the message can block its sender
- * 3. guest messages have no senderId -> there is nobody to block
- * 4. add the sender to the receiver's blockedUsers
+ * 3. logged-in sender -> block his user id (blockedUsers)
+ *    guest sender      -> block the HMAC of his IP (blockedGuests)  (C6)
+ *    old guest messages (before C6) have neither -> there is nobody to block
+ * 4. add the sender to the receiver's block list
  *    $addToSet = push only if not already in the array (no duplicates)
  *    $pull     = remove from the array (used in unblock)
  */
-const getMessageSenderForReceiver = async(noteId, userId, lang)=>{
-  //1
-  const note = await findById({model:MessageModel, id:noteId, options:{lean:true}})
+const getReceiverOwnedMessage = async(noteId, userId, lang, select = '')=>{
+  const note = await findById({model:MessageModel, id:noteId, select, options:{lean:true}})
   if (!note) throw notFoundError(lang)
 
-  //2
   if (String(note.receiverId) !== String(userId)) {
-    throw new ForbiddenException(lang === languagesEnum.EN ? translations.notReceiver.EN : translations.notReceiver.AR, lang)
+    throw new ForbiddenException(tr("notReceiver", lang), lang)
   }
+  return note
+}
+
+// returns the { field: value } to put in / remove from the receiver's block lists
+const getBlockTarget = async(noteId, userId, lang)=>{
+  //1 + 2  (senderIpHash is select:false -> we ask for it explicitly)
+  const note = await getReceiverOwnedMessage(noteId, userId, lang, "+senderIpHash")
 
   //3
-  if (!note.senderId) {
-    throw new BadRequestException(lang === languagesEnum.EN ? translations.guestCantBeBlocked.EN : translations.guestCantBeBlocked.AR, lang)
-  }
-
-  return note.senderId
+  if (note.senderId) return { blockedUsers: note.senderId }
+  if (note.senderIpHash) return { blockedGuests: note.senderIpHash }
+  throw new BadRequestException(tr("guestCantBeBlocked", lang), lang)
 }
 
 export const blockSenderService = async(noteId, userId, lang)=>{
-  const senderId = await getMessageSenderForReceiver(noteId, userId, lang)
+  const target = await getBlockTarget(noteId, userId, lang)
   //4
-  await updateOne({model:UserModel, filter:{_id:userId}, update:{$addToSet:{blockedUsers:senderId}}})
-  // we don't return the senderId on purpose -> it would reveal who sent an anonymous message
+  await updateOne({model:UserModel, filter:{_id:userId}, update:{$addToSet:target}})
+  // we don't return the target on purpose -> it would reveal who sent an anonymous message
 }
 
 export const unblockSenderService = async(noteId, userId, lang)=>{
-  const senderId = await getMessageSenderForReceiver(noteId, userId, lang)
-  await updateOne({model:UserModel, filter:{_id:userId}, update:{$pull:{blockedUsers:senderId}}})
+  const target = await getBlockTarget(noteId, userId, lang)
+  await updateOne({model:UserModel, filter:{_id:userId}, update:{$pull:target}})
+}
+
+/* ============================== report (receiver only) ============================== */
+
+// C5: the receiver flags a message (abuse, spam ...). reporting again just updates the reason.
+export const reportService = async(noteId, userId, reason, lang)=>{
+  await getReceiverOwnedMessage(noteId, userId, lang)
+  await updateOne({model:MessageModel, filter:{_id:noteId}, update:{$set:{
+    "report.reportedAt": new Date(),
+    "report.reason": reason ?? null,
+  }}})
 }
 
 /* ============================== delete (receiver only) ============================== */
 
 export const deleteService = async(noteId, userId, lang)=>{
-  const note = await findById({model:MessageModel, id:noteId, options:{lean:true}})
-  if (!note) throw notFoundError(lang)
-
-  if (String(note.receiverId) !== String(userId)) {
-    throw new ForbiddenException(lang === languagesEnum.EN ? translations.notReceiver.EN : translations.notReceiver.AR, lang)
-  }
-
+  await getReceiverOwnedMessage(noteId, userId, lang)
   await deleteOne({model:MessageModel, filter:{_id:noteId}})
 }
 
@@ -219,20 +265,12 @@ export const paginateService = async({page, limit, search}, userId)=>{
   const filter = {receiverId:userId}
   if (search) {
     filter.$or = [
-      {title:{$regex:search, $options:"i"}},
-      {content:{$regex:search, $options:"i"}},
+      {title:textMatch(search)},
+      {content:textMatch(search)},
     ]
   }
 
-  const notes = await find({model:MessageModel, filter, options:{sort:{createdAt:-1}, skip:(page-1)*limit, limit, lean:true, populate:POPULATE_USERS}})
-  const total = await countDocuments({model:MessageModel, filter})
-
-  return {
-    notes: notes.map((note) => formatMessage(note, userId)),
-    total,
-    page,
-    pages: Math.ceil(total/limit),
-  }
+  return findPaginated({ filter, page, limit, userId })
 }
 
 /**
@@ -257,26 +295,17 @@ export const getOneService = async(noteId, userId, lang)=>{
 }
 
 export const getByContentService = async({search, page, limit}, userId)=>{
-  const filter = {receiverId:userId, content:{$regex:search, $options:"i"}}
-
-  const notes = await find({model:MessageModel, filter, options:{sort:{createdAt:-1}, skip:(page-1)*limit, limit, lean:true, populate:POPULATE_USERS}})
-  const total = await countDocuments({model:MessageModel, filter})
-  return {
-    notes: notes.map((note) => formatMessage(note, userId)),
-    total,
-    page,
-    pages: Math.ceil(total/limit),
-  }
+  const filter = {receiverId:userId, content:textMatch(search)}
+  return findPaginated({ filter, page, limit, userId })
 }
 
 // type: "0" = sent + received, "1" = sent only, "2" = received only
-export const getAllService = async(type, userId)=>{
+export const getAllService = async({type, page, limit}, userId)=>{
   const filters = {
     "0": {$or:[{senderId:userId}, {receiverId:userId}]},
     "1": {senderId:userId},
     "2": {receiverId:userId},
   }
 
-  const notes = await find({model:MessageModel, filter:filters[type], options:{sort:{createdAt:-1}, lean:true, populate:POPULATE_USERS}})
-  return notes.map((note) => formatMessage(note, userId))
+  return findPaginated({ filter: filters[type], page, limit, userId })
 }

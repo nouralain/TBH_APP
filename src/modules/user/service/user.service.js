@@ -65,7 +65,7 @@ export const publicProfileService = async({username , lang})=>{
  * or clear the whole list with this.
  */
 export const unblockAllService = async({id})=>{
-  await updateOne({model:UserModel , filter:{_id:id} , update:{$set:{blockedUsers:[]}}})
+  await updateOne({model:UserModel , filter:{_id:id} , update:{$set:{blockedUsers:[], blockedGuests:[]}}})
 }
 
 /**

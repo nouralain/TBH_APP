@@ -25,4 +25,7 @@ router.delete("/:noteId", validation(validators.deleteMessageSchema), controller
 router.post("/:noteId/block-sender", validation(validators.blockSenderSchema), controller.blockSender);
 router.delete("/:noteId/block-sender", validation(validators.blockSenderSchema), controller.unblockSender);
 
+// receiver reports a message (C5)
+router.post("/:noteId/report", validation(validators.reportMessageSchema), controller.reportMessage);
+
 export default router

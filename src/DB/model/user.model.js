@@ -78,8 +78,13 @@ const userScheme = new Schema({
     blockedUsers:[{
         type:mongoose.Types.ObjectId,
         ref:"User",
+    }],
+    // C6: guests he blocked, stored as the HMAC of their IP (same value as message.senderIpHash)
+    // hidden from the client for the same reason as blockedUsers
+    blockedGuests:[{
+        type:String,
     }]
-    
+
 
 },{
 timestamps:true,
@@ -92,8 +97,9 @@ toObject:{virtuals:true,
         delete ret.phone;
         delete ret.__v;
         // show only HOW MANY users he blocked, never WHO (see blockedUsers above)
-        ret.blockedCount = ret.blockedUsers?.length ?? 0;
+        ret.blockedCount = (ret.blockedUsers?.length ?? 0) + (ret.blockedGuests?.length ?? 0);
         delete ret.blockedUsers;
+        delete ret.blockedGuests;
         return ret;
       },
 },
@@ -103,8 +109,9 @@ toJSON:{virtuals:true,
         delete ret.phone;
         delete ret.__v;
         // show only HOW MANY users he blocked, never WHO (see blockedUsers above)
-        ret.blockedCount = ret.blockedUsers?.length ?? 0;
+        ret.blockedCount = (ret.blockedUsers?.length ?? 0) + (ret.blockedGuests?.length ?? 0);
         delete ret.blockedUsers;
+        delete ret.blockedGuests;
         return ret;
       },
 }

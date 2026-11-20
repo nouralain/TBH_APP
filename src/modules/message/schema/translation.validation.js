@@ -10,6 +10,10 @@ export const validationTranslation = {
       min: {
        [languagesEnum.EN]: "Title cannot be empty",
        [languagesEnum.AR]: "لا يمكن أن يكون العنوان فارغاً"
+      },
+      max: {
+       [languagesEnum.EN]: "Title must be at most 100 characters",
+       [languagesEnum.AR]: "يجب ألا يزيد العنوان عن 100 حرف"
       }
     },
     content: {
@@ -20,6 +24,10 @@ export const validationTranslation = {
       min: {
        [languagesEnum.EN]: "Content cannot be empty",
        [languagesEnum.AR]: "لا يمكن أن يكون المحتوى فارغاً"
+      },
+      max: {
+       [languagesEnum.EN]: "Content must be at most 1000 characters",
+       [languagesEnum.AR]: "يجب ألا يزيد المحتوى عن 1000 حرف"
       }
     },
     receiverId: {
@@ -68,6 +76,20 @@ export const validationTranslation = {
       required: {
        [languagesEnum.EN]: "Search text is required",
        [languagesEnum.AR]: "نص البحث مطلوب"
+      },
+      max: {
+       [languagesEnum.EN]: "Search text must be at most 100 characters",
+       [languagesEnum.AR]: "يجب ألا يزيد نص البحث عن 100 حرف"
+      }
+    },
+    reportReason: {
+      invalid: {
+       [languagesEnum.EN]: "Report reason must be text",
+       [languagesEnum.AR]: "سبب الإبلاغ يجب أن يكون نصاً"
+      },
+      max: {
+       [languagesEnum.EN]: "Report reason must be at most 300 characters",
+       [languagesEnum.AR]: "يجب ألا يزيد سبب الإبلاغ عن 300 حرف"
       }
     },
     type: {
