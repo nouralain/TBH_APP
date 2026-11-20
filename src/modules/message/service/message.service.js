@@ -2,11 +2,15 @@
 import { MessageModel } from "../../../DB/model/message.model.js";
 import { UserModel } from "../../../DB/model/user.model.js";
 import { languagesEnum } from "../../../lib/enum/languages.enum.js";
-import { BadRequestException, ForbiddenException, NotFoundException } from "../../../pkg/errors/error.exception.js";
+import { BadRequestException, ForbiddenException, NotFoundException, TooManyRequestsException } from "../../../pkg/errors/error.exception.js";
 import { countDocuments, createOne, deleteOne, find, findById, findOne, updateOne } from "../../../pkg/services/mongoose.services.js";
 import { translations } from "../translations.message.js";
 import { escapeRegex } from "../../../lib/utils/escapeRegex.js";
 import { containsBadWord, containsLink } from "../../../lib/utils/moderation.js";
+import { consume, rateLimitKey } from "../../../lib/utils/rateLimiter.js";
+
+// D2: one sender (user or guest IP) -> one receiver: 3 messages / hour
+const PER_RECEIVER_LIMIT = { windowSec: 60 * 60, max: 3 }
 
 /* ============================== helpers ============================== */
 
@@ -110,7 +114,8 @@ const textMatch = (search) => ({ $regex: escapeRegex(search), $options: "i" })
  *      - logged in            -> what he chose, and anonymous if he didn't choose
  * 6. if the receiver turned OFF anonymous messages and this one is anonymous -> 403
  * 7. anonymous messages go through a basic filter: no links, no bad words (C5)
- * 8. create the message (we still save senderId for logged in users so they see it in
+ * 8. max 3 messages / hour from one sender to one receiver (D2)
+ * 9. create the message (we still save senderId for logged in users so they see it in
  *    their "sent" list and so the receiver can block them, formatMessage hides it from the receiver.
  *    guests get senderIpHash instead, so they can be blocked too)
  */
@@ -163,7 +168,21 @@ export const createMessageService = async({title , content , receiverId , receiv
     if (containsBadWord(text)) throw new BadRequestException(tr("inappropriateContent", lang), lang)
   }
 
-  //8
+  //8  D2: max 3 messages / hour from this sender to this receiver.
+  //   keyed by the receiver's _id (not what was sent) so receiverId and receiverUsername share one counter.
+  //   counted only for messages that passed every check above. Redis down -> skipped (fail open)
+  const sender = senderId ? `user:${senderId}` : `ip:${senderIpHash}`
+  let perReceiver
+  try {
+    perReceiver = await consume({ key: rateLimitKey("msg-receiver", sender, String(receiver._id)), ...PER_RECEIVER_LIMIT })
+  } catch (error) {
+    console.error("per-receiver rate limit skipped, Redis unavailable:", error.message)
+  }
+  if (perReceiver && !perReceiver.allowed) {
+    throw new TooManyRequestsException(tr("tooManyToReceiver", lang), lang, perReceiver.retryAfter)
+  }
+
+  //9
   const message = await createOne({model:MessageModel , data:{
     title,
     content,

@@ -1,5 +1,6 @@
 import { languagesEnum } from "../../../lib/enum/languages.enum.js"
 import { getLang } from "../../../lib/utils/getLanguage.js"
+import { hashIp } from "../../../lib/utils/ipHash.js"
 import successResponse from "../../../pkg/successResponse.js"
 import { loginService, registerService ,confirmOtpService,resendOtpService,signupWithGoogleService} from "../service/auth.services.js"
 import { translations } from "../translations.js"
@@ -12,7 +13,8 @@ export const register =async (req,res,next)=>{
 
 export const login =async (req,res,next)=>{
     const lang = getLang(req);
-    const data=await loginService(req.validate.body,lang)
+    // the login lock is per email + IP (D2), only the HMAC of the IP is stored
+    const data=await loginService(req.validate.body,lang,hashIp(req.ip))
     successResponse(res,{data})
 }
 

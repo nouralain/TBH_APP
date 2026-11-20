@@ -4,6 +4,7 @@ import cors from "cors"
 import { PORT, TRUST_PROXY } from './src/config.js';
 import bootstrapDB from './src/DB/connections.db.js';
 import globalErrorHandler from './src/lib/middlewares/error.middleware.js';
+import { byIp, rateLimit } from './src/lib/middlewares/rateLimit.middleware.js';
 import { authRouter } from './src/modules/auth/index.js';
 import { userRouter } from './src/modules/user/index.js';
 import { messageRouter } from './src/modules/message/index.js';
@@ -15,6 +16,9 @@ if (TRUST_PROXY) app.set("trust proxy", TRUST_PROXY === "true" ? true : Number(T
 app.use(cors(), express.json({ limit: "10kb" }))
 
 await bootstrapDB()
+
+// D2: global fallback, 100 requests / minute per IP on every route (fails open if Redis is down)
+app.use(rateLimit({ keyPrefix: "global", windowSec: 60, max: 100, keyBy: byIp }))
 
 app.use("/api/auth", authRouter)
 app.use("/api/users", userRouter)

@@ -29,6 +29,14 @@ export const errorTranslation = {
         [languagesEnum.AR]: "فشل التحقق من الصحة",
       [languagesEnum.EN]: "Validation failed"
     },
+    tooManyRequests: {
+        [languagesEnum.AR]: "طلبات كثيرة جداً، يرجى المحاولة لاحقاً",
+      [languagesEnum.EN]: "Too many requests, please try again later"
+    },
+    serviceUnavailable: {
+        [languagesEnum.AR]: "الخدمة غير متاحة مؤقتاً، يرجى المحاولة لاحقاً",
+      [languagesEnum.EN]: "Service temporarily unavailable, please try again later"
+    },
     wrongCredentials: {
         [languagesEnum.AR]: "بيانات غير صحيحة",
       [languagesEnum.EN]: "Wrong credentials"

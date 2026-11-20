@@ -27,6 +27,14 @@ export const translations ={
         EN: "Maximum resend OTP attempts exceeded. Please try again later.",
         AR: "لقد تجاوزت الحد الأقصى لمحاولات إعادة إرسال رمز التحقق. يرجى المحاولة لاحقاً."
     },
+    OTP_TOO_MANY_ATTEMPTS: {
+        EN: "Too many wrong attempts. This code is no longer valid, please request a new one.",
+        AR: "محاولات خاطئة كثيرة. هذا الرمز لم يعد صالحاً، يرجى طلب رمز جديد."
+    },
+    LOGIN_LOCKED: {
+        EN: "Too many failed login attempts. Please try again in 15 minutes.",
+        AR: "محاولات تسجيل دخول فاشلة كثيرة. يرجى المحاولة بعد 15 دقيقة."
+    },
     GOOGLE_ACCOUNT_LOGIN: {
         EN: "This email is registered with Google. Please sign in with Google.",
         AR: "هذا البريد الإلكتروني مسجل عبر جوجل. يرجى تسجيل الدخول باستخدام جوجل."

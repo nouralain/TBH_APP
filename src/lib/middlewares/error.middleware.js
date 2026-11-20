@@ -3,6 +3,8 @@ import { ApplicationException } from "../../pkg/errors/error.exception.js";
 const globalErrorHandler =(err,req,res,next)=>{
   if (err instanceof ApplicationException) {
     console.log(err);
+    // 429: tell the client how many seconds to wait (D1)
+    if (err.retryAfter > 0) res.set("Retry-After", String(err.retryAfter));
 
     return res.status(err.statusCode).json({
       status: "fail",
