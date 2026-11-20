@@ -2,12 +2,8 @@ import { z } from "zod";
 import { genderEnum } from "../enum/gender.enum.js";
 import { validationTranslation } from "../../modules/auth/schema/translate.validations.js";
 
-export const confermFields = ({ data, message, path } = {}) => {
-    return data.password === data.confirmPassword, {
-        message,
-        path: [...path], 
-      }
-}
+/** Returns true when password and confirmPassword match. Use with .refine(fn, { message, path }). */
+export const passwordsMatch = (data) => data.password === data.confirmPassword
 
 export const generalValidationFields = {
     userName: (lang) => {
@@ -55,9 +51,7 @@ export const generalValidationFields = {
     gender: (lang) => {
         const t = validationTranslation.gender;
         return z
-            .enum(["MALE", "FEMALE", "male", "female"], {
-                errorMap: () => ({ message: t.invalid[lang] }),
-            })
+            .enum(["MALE", "FEMALE", "male", "female"], { error: t.invalid[lang] })
             .transform((val) => genderEnum[val.toUpperCase()]);
     },
     otp: (lang) => {

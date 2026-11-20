@@ -61,6 +61,18 @@ export const validationTranslation = {
            [languagesEnum.EN]: "Gender must be either male or female"
         }
     },
+    confirmPassword: {
+        mismatch: {
+            [languagesEnum.AR]: "كلمتا المرور غير متطابقتين",
+           [languagesEnum.EN]: "Passwords do not match"
+        }
+    },
+    idToken: {
+        required: {
+            [languagesEnum.AR]: "رمز جوجل مطلوب",
+           [languagesEnum.EN]: "Google idToken is required"
+        }
+    },
     otp: {
         len: {
             [languagesEnum.AR]: "رمز التأكيد 6 ارقام فقط",

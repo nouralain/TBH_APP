@@ -25,7 +25,6 @@ export const UpdateController = async(req,res,next)=>{
 
 export const rotateTokenController = async(req,res,next)=>{
     const lang = getLang(req);
-console.log(lang);
 
    const data =  await rotateToken({payload:req.payload , lang})
     successResponse(res,{message:lang===languagesEnum.EN?translations.TOKEN_REFRESHED_SUCCESS.EN:translations.TOKEN_REFRESHED_SUCCESS.AR , data})    

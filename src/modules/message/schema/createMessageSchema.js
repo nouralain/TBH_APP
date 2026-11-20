@@ -8,17 +8,17 @@ const createMessage = (lang) => {
 
   return z.strictObject({
     title: z
-      .string({ required_error: t.title.required[lang] })
+      .string({ error: t.title.required[lang] })
       .trim()
       .min(1, t.title.min[lang]),
 
     content: z
-      .string({ required_error: t.content.required[lang] })
+      .string({ error: t.content.required[lang] })
       .trim()
       .min(1, t.content.min[lang]),
 
     reciverId: z
-      .string({ required_error: t.reciverId.required[lang] })
+      .string({ error: t.reciverId.required[lang] })
       .regex(objectIdRegex, t.reciverId.invalid[lang]),
   });
 };
@@ -29,13 +29,13 @@ const updateMessage = (lang) => {
   return z
     .strictObject({
       title: z
-        .string({ required_error: t.title.required[lang] })
+        .string({ error: t.title.required[lang] })
         .trim()
         .min(1, t.title.min[lang])
         .optional(),
 
       content: z
-        .string({ required_error: t.content.required[lang] })
+        .string({ error: t.content.required[lang] })
         .trim()
         .min(1, t.content.min[lang])
         .optional(),
@@ -50,12 +50,12 @@ const replaceMessage = (lang) => {
 
   return z.strictObject({
     title: z
-      .string({ required_error: t.title.required[lang] })
+      .string({ error: t.title.required[lang] })
       .trim()
       .min(1, t.title.min[lang]),
 
     content: z
-      .string({ required_error: t.content.required[lang] })
+      .string({ error: t.content.required[lang] })
       .trim()
       .min(1, t.content.min[lang]),
   });
@@ -66,7 +66,7 @@ const updateAllTitles = (lang) => {
 
   return z.strictObject({
     title: z
-      .string({ required_error: t.title.required[lang] })
+      .string({ error: t.title.required[lang] })
       .trim()
       .min(1, t.title.min[lang]),
   });
@@ -77,7 +77,7 @@ const noteIdParams = (lang) => {
 
   return z.strictObject({
     noteId: z
-      .string({ required_error: t.noteId.required[lang] })
+      .string({ error: t.noteId.required[lang] })
       .regex(objectIdRegex, t.noteId.invalid[lang]),
   });
 };
@@ -87,7 +87,7 @@ const idParams = (lang) => {
 
   return z.strictObject({
     id: z
-      .string({ required_error: t.id.required[lang] })
+      .string({ error: t.id.required[lang] })
       .regex(objectIdRegex, t.id.invalid[lang]),
   });
 };
@@ -150,7 +150,7 @@ export const getMessagesByContentSchema = (lang) => {
   return z.object({
     query: z.object({
       search: z
-        .string({ required_error: t.search.required[lang] })
+        .string({ error: t.search.required[lang] })
         .trim()
         .min(1, t.search.required[lang]),
       ...paging,
@@ -164,7 +164,7 @@ export const getAllMessagesSchema = (lang) => {
   return z.object({
     query: z.object({
       type: z
-        .enum(["0", "1", "2"], { errorMap: () => ({ message: t.type.invalid[lang] }) })
+        .enum(["0", "1", "2"], { error: t.type.invalid[lang] })
         .default("0"),
     }),
   });

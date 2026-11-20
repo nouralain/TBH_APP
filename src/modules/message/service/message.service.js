@@ -2,8 +2,8 @@
 import { MessageModel } from "../../../DB/model/message.model.js";
 import { UserModel } from "../../../DB/model/user.model.js";
 import { languagesEnum } from "../../../lib/enum/languages.enum.js";
-import { NotFoundException } from "../../../pkg/errors/error.exception.js";
-import { countDocuments, createOne, find, findOne, updateMany } from "../../../pkg/services/mongoose.services.js";
+import { ForbiddenException, NotFoundException } from "../../../pkg/errors/error.exception.js";
+import { countDocuments, createOne, deleteOne, find, findById, findByIdAndUpdate, findOne, updateMany } from "../../../pkg/services/mongoose.services.js";
 import { translations } from "../translations.message.js";
 
 // const hideSender = (note, userId) => {
@@ -17,13 +17,12 @@ import { translations } from "../translations.message.js";
 //3. search for the reciverid in db if exist
 //4. create the message
 export const createMessageService = async({title , content , reciverId} , senderId , lang)=>{
-console.log({senderId ,reciverId});
 const isExisted = await findOne({model:UserModel , filter:{_id:reciverId}})
-console.log(isExisted);
 if(!isExisted)throw  new NotFoundException(
-    lang === languagesEnum.AR 
-        ? translations.notFound.AR 
-        : translations.notFound.EN
+    lang === languagesEnum.AR
+        ? translations.receiverNotFound.AR
+        : translations.receiverNotFound.EN,
+    lang
 );
 
 return await createOne({model:MessageModel , data:{
@@ -34,7 +33,7 @@ return await createOne({model:MessageModel , data:{
 }})
 }
 
-export const updateService = async({noteId, data, userId, lang})=>{
+export const updateService = async(noteId, data, userId, lang)=>{
     const note = await findById({model:MessageModel, id:noteId, options:{lean:true}})
     if (!note) throw new NotFoundException(lang === languagesEnum.EN ? translations.notFound.EN : translations.notFound.AR, lang)
   
@@ -45,7 +44,7 @@ export const updateService = async({noteId, data, userId, lang})=>{
     return await findByIdAndUpdate({model:MessageModel, id:noteId, update:data, options:{returnDocument:"after", runValidators:true}})
   }
   
-  export const replaceService = async({noteId, data, userId, lang})=>{
+  export const replaceService = async(noteId, data, userId, lang)=>{
     const note = await findById({model:MessageModel, id:noteId, options:{lean:true}})
     if (!note) throw new NotFoundException(lang === languagesEnum.EN ? translations.notFound.EN : translations.notFound.AR, lang)
   
@@ -56,12 +55,12 @@ export const updateService = async({noteId, data, userId, lang})=>{
     return await findByIdAndUpdate({model:MessageModel, id:noteId, update:{title:data.title, content:data.content}, options:{returnDocument:"after", runValidators:true}})
   }
   
-  export const updateAllTitlesService = async({title, userId})=>{
+  export const updateAllTitlesService = async(title, userId)=>{
     const result = await updateMany({model:MessageModel, filter:{senderId:userId}, update:{title}})
     return {modifiedCount: result.modifiedCount}
   }
   
-  export const deleteService = async({noteId, userId, lang})=>{
+  export const deleteService = async(noteId, userId, lang)=>{
     const note = await findById({model:MessageModel, id:noteId, options:{lean:true}})
     if (!note) throw new NotFoundException(lang === languagesEnum.EN ? translations.notFound.EN : translations.notFound.AR, lang)
   
@@ -85,14 +84,15 @@ export const updateService = async({noteId, data, userId, lang})=>{
     const total = await countDocuments({model:MessageModel, filter})
   
     return {
-      notes: notes.map((note)=> hideSender(note, userId)),
+      notes,
       total,
       page,
       pages: Math.ceil(total/limit),
     }
   }
   
-  export const getOneService = async({noteId, userId, lang})=>{
+  export const getOneService = async(noteId, userId, lang)=>{
+    
     const note = await findById({model:MessageModel, id:noteId, options:{lean:true}})
     if (!note) throw new NotFoundException(lang === languagesEnum.EN ? translations.notFound.EN : translations.notFound.AR, lang)
   
@@ -100,7 +100,7 @@ export const updateService = async({noteId, data, userId, lang})=>{
       throw new ForbiddenException(lang === languagesEnum.EN ? translations.notParticipant.EN : translations.notParticipant.AR, lang)
     }
   
-    return hideSender(note, userId)
+    return note
   }
   
   export const getByContentService = async({search, page, limit}, userId)=>{
@@ -108,7 +108,6 @@ export const updateService = async({noteId, data, userId, lang})=>{
   
     const notes = await find({model:MessageModel, filter, options:{sort:{createdAt:-1}, skip:(page-1)*limit, limit, lean:true}})
     const total = await countDocuments({model:MessageModel, filter})
-  
     return {
       notes,
       total,

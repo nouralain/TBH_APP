@@ -1,69 +1,71 @@
+import { languagesEnum } from "../../../lib/enum/languages.enum.js";
+
 export const validationTranslation = {
   message: {
     title: {
       required: {
-       EN: "Title is required",
-       AR: "العنوان مطلوب"
+       [languagesEnum.EN]: "Title is required",
+       [languagesEnum.AR]: "العنوان مطلوب"
       },
       min: {
-       EN: "Title cannot be empty",
-       AR: "لا يمكن أن يكون العنوان فارغاً"
+       [languagesEnum.EN]: "Title cannot be empty",
+       [languagesEnum.AR]: "لا يمكن أن يكون العنوان فارغاً"
       }
     },
     content: {
       required: {
-       EN: "Content is required",
-       AR: "المحتوى مطلوب"
+       [languagesEnum.EN]: "Content is required",
+       [languagesEnum.AR]: "المحتوى مطلوب"
       },
       min: {
-       EN: "Content cannot be empty",
-       AR: "لا يمكن أن يكون المحتوى فارغاً"
+       [languagesEnum.EN]: "Content cannot be empty",
+       [languagesEnum.AR]: "لا يمكن أن يكون المحتوى فارغاً"
       }
     },
     reciverId: {
       required: {
-       EN: "Receiver ID is required",
-       AR: "معرف المستقبل مطلوب"
+       [languagesEnum.EN]: "Receiver ID is required",
+       [languagesEnum.AR]: "معرف المستقبل مطلوب"
       },
       invalid: {
-       EN: "Invalid receiver ID",
-       AR: "معرف المستقبل غير صالح"
+       [languagesEnum.EN]: "Invalid receiver ID",
+       [languagesEnum.AR]: "معرف المستقبل غير صالح"
       }
     },
     updateEmpty: {
-      EN: "At least one field is required",
-      AR: "يجب إرسال حقل واحد على الأقل"
+      [languagesEnum.EN]: "At least one field is required",
+      [languagesEnum.AR]: "يجب إرسال حقل واحد على الأقل"
     },
     noteId: {
       required: {
-       EN: "Note ID is required",
-       AR: "معرف الرسالة مطلوب"
+       [languagesEnum.EN]: "Note ID is required",
+       [languagesEnum.AR]: "معرف الرسالة مطلوب"
       },
       invalid: {
-       EN: "Invalid note ID",
-       AR: "معرف الرسالة غير صالح"
+       [languagesEnum.EN]: "Invalid note ID",
+       [languagesEnum.AR]: "معرف الرسالة غير صالح"
       }
     },
     id: {
       required: {
-       EN: "ID is required",
-       AR: "المعرف مطلوب"
+       [languagesEnum.EN]: "ID is required",
+       [languagesEnum.AR]: "المعرف مطلوب"
       },
       invalid: {
-       EN: "Invalid ID",
-       AR: "المعرف غير صالح"
+       [languagesEnum.EN]: "Invalid ID",
+       [languagesEnum.AR]: "المعرف غير صالح"
       }
     },
     search: {
       required: {
-       EN: "Search text is required",
-       AR: "نص البحث مطلوب"
+       [languagesEnum.EN]: "Search text is required",
+       [languagesEnum.AR]: "نص البحث مطلوب"
       }
     },
     type: {
       invalid: {
-       EN: "Type must be 0, 1, or 2",
-       AR: "النوع يجب أن يكون 0 أو 1 أو 2"
+       [languagesEnum.EN]: "Type must be 0, 1, or 2",
+       [languagesEnum.AR]: "النوع يجب أن يكون 0 أو 1 أو 2"
       }
     }
   }
