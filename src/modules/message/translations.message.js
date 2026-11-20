@@ -3,7 +3,7 @@ export const translations ={
             AR: "الرسالة غير موجودة",
           EN: "Message not found",
         },
-       
+
           receiverNotFound: {
             AR: "المستلم غير موجود",
             EN: "Receiver not found",
@@ -12,22 +12,35 @@ export const translations ={
             AR: "لا يمكنك إرسال رسالة لنفسك",
             EN: "You cannot send a message to yourself",
           },
-          notSender: {
-            AR: "لا تملك صلاحية تعديل هذه الرسالة",
-            EN: "You are not allowed to modify this message",
-          },
+          // used for delete + block + unblock -> all of them are "receiver only" actions
           notReceiver: {
-            AR: "لا يمكنك حذف هذه الرسالة",
-            EN: "You are not allowed to delete this message",
+            AR: "هذا الإجراء متاح لمستلم الرسالة فقط",
+            EN: "Only the receiver of this message can do this",
           },
           notParticipant: {
             AR: "لا تملك صلاحية عرض هذه الرسالة",
             EN: "You are not allowed to view this message",
           },
-          notOwner:{
-            AR:"لست المرسل للرساله",
-            EN: "You are not owner",
-          }
-      
-   
+          // the sender is blocked by the receiver
+          // (we say it softly on purpose, we don't tell him "you are blocked")
+          cannotSendToUser: {
+            AR: "لا يمكنك إرسال رسائل لهذا المستخدم",
+            EN: "You can't send messages to this user",
+          },
+          anonymousNotAllowed: {
+            AR: "هذا المستخدم لا يستقبل رسائل مجهولة، سجّل الدخول وأرسل باسمك",
+            EN: "This user doesn't accept anonymous messages. Log in and send with your name",
+          },
+          guestCantBeBlocked: {
+            AR: "تم إرسال هذه الرسالة من زائر بدون حساب، لا يمكن حظره",
+            EN: "This message was sent by a guest without an account, so they can't be blocked",
+          },
+          senderBlocked: {
+            AR: "تم حظر المرسل",
+            EN: "Sender blocked",
+          },
+          senderUnblocked: {
+            AR: "تم إلغاء حظر المرسل",
+            EN: "Sender unblocked",
+          },
 }

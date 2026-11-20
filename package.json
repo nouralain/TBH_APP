@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development node --watch .",
-    "start": "cross-env NODE_ENV=production node ."
+    "start": "cross-env NODE_ENV=production node .",
+    "migrate:receiverId": "cross-env NODE_ENV=development node scripts/migrate-receiverId.js"
   },
   "keywords": [],
   "author": "",

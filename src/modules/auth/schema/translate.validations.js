@@ -61,6 +61,20 @@ export const validationTranslation = {
            [languagesEnum.EN]: "Gender must be either male or female"
         }
     },
+    username: {
+        min: {
+            [languagesEnum.AR]: "يجب أن يكون اسم المستخدم 3 أحرف على الأقل",
+           [languagesEnum.EN]: "Username must be at least 3 characters"
+        },
+        max: {
+            [languagesEnum.AR]: "لا يمكن أن يتجاوز اسم المستخدم 30 حرفًا",
+           [languagesEnum.EN]: "Username cannot exceed 30 characters"
+        },
+        regex: {
+            [languagesEnum.AR]: "اسم المستخدم يقبل الحروف الإنجليزية الصغيرة والأرقام و _ و . فقط",
+           [languagesEnum.EN]: "Username can only contain lowercase letters, numbers, _ and ."
+        }
+    },
     confirmPassword: {
         mismatch: {
             [languagesEnum.AR]: "كلمتا المرور غير متطابقتين",

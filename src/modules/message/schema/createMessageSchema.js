@@ -17,60 +17,35 @@ const createMessage = (lang) => {
       .trim()
       .min(1, t.content.min[lang]),
 
-    reciverId: z
-      .string({ error: t.reciverId.required[lang] })
-      .regex(objectIdRegex, t.reciverId.invalid[lang]),
-  });
-};
+    // the sender can choose the receiver by his id OR by his username (from the share link)
+    // both are optional here, but the .refine below makes sure exactly one of them is sent
+    receiverId: z
+      .string({ error: t.receiverId.invalid[lang] })
+      .regex(objectIdRegex, t.receiverId.invalid[lang])
+      .optional(),
 
-const updateMessage = (lang) => {
-  const t = validationTranslation.message;
+    receiverUsername: z
+      .string({ error: t.receiverUsername.invalid[lang] })
+      .trim()
+      .toLowerCase()
+      .optional(),
 
-  return z
-    .strictObject({
-      title: z
-        .string({ error: t.title.required[lang] })
-        .trim()
-        .min(1, t.title.min[lang])
-        .optional(),
-
-      content: z
-        .string({ error: t.content.required[lang] })
-        .trim()
-        .min(1, t.content.min[lang])
-        .optional(),
-    })
-    .refine((body) => Object.keys(body).length > 0, {
-      message: t.updateEmpty[lang],
+    // optional: if not sent the message is anonymous by default
+    // (guests are always anonymous, the service forces it)
+    isAnonymous: z
+      .boolean({ error: t.isAnonymous.invalid[lang] })
+      .optional(),
+  })
+    // exactly one of receiverId / receiverUsername
+    // (!!a !== !!b) is true only when one of them exists and the other doesn't
+    .refine((body) => !!body.receiverId !== !!body.receiverUsername, {
+      message: t.receiverId.required[lang],
+      path: ["receiverId"],
     });
 };
 
-const replaceMessage = (lang) => {
-  const t = validationTranslation.message;
-
-  return z.strictObject({
-    title: z
-      .string({ error: t.title.required[lang] })
-      .trim()
-      .min(1, t.title.min[lang]),
-
-    content: z
-      .string({ error: t.content.required[lang] })
-      .trim()
-      .min(1, t.content.min[lang]),
-  });
-};
-
-const updateAllTitles = (lang) => {
-  const t = validationTranslation.message;
-
-  return z.strictObject({
-    title: z
-      .string({ error: t.title.required[lang] })
-      .trim()
-      .min(1, t.title.min[lang]),
-  });
-};
+// NOTE: there are no update / replace schemas anymore
+// because a message can't be edited after it's sent (decision B5)
 
 const noteIdParams = (lang) => {
   const t = validationTranslation.message;
@@ -103,27 +78,14 @@ export const createMessageSchema = (lang) => {
   });
 };
 
-export const updateMessageSchema = (lang) => {
-  return z.object({
-    params: noteIdParams(lang),
-    body: updateMessage(lang),
-  });
-};
-
-export const replaceMessageSchema = (lang) => {
-  return z.object({
-    params: noteIdParams(lang),
-    body: replaceMessage(lang),
-  });
-};
-
-export const updateAllTitlesSchema = (lang) => {
-  return z.object({
-    body: updateAllTitles(lang),
-  });
-};
-
 export const deleteMessageSchema = (lang) => {
+  return z.object({
+    params: noteIdParams(lang),
+  });
+};
+
+// POST / DELETE /api/messages/:noteId/block-sender -> same params as delete (just the message id)
+export const blockSenderSchema = (lang) => {
   return z.object({
     params: noteIdParams(lang),
   });

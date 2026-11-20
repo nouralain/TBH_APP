@@ -11,15 +11,18 @@ router.post("/", optionalAuthentication(), validation(validators.createMessageSc
 
 router.use(authentication());
 
-// Static paths must be declared before "/:noteId" and "/:id", otherwise the param routes swallow them.
+// NOTE: no PATCH /:noteId, PUT /replace/:noteId or PATCH /all anymore -> messages can't be edited (B5)
+
+// Static paths must be declared before "/:id", otherwise the param route swallows them.
 router.get("/", validation(validators.getAllMessagesSchema), controller.getAllMessages);
 router.get("/paginate-sort", validation(validators.paginateMessagesSchema), controller.paginateMessages);
 router.get("/note-by-content", validation(validators.getMessagesByContentSchema), controller.getMessagesByContent);
-router.patch("/all", validation(validators.updateAllTitlesSchema), controller.updateAllTitles);
-router.put("/replace/:noteId", validation(validators.replaceMessageSchema), controller.replaceMessage);
 
 router.get("/:id", validation(validators.getMessageSchema), controller.getMessage);
-router.patch("/:noteId", validation(validators.updateMessageSchema), controller.updateMessage);
 router.delete("/:noteId", validation(validators.deleteMessageSchema), controller.deleteMessage);
+
+// receiver blocks / unblocks whoever sent this message (without finding out who it is)
+router.post("/:noteId/block-sender", validation(validators.blockSenderSchema), controller.blockSender);
+router.delete("/:noteId/block-sender", validation(validators.blockSenderSchema), controller.unblockSender);
 
 export default router

@@ -13,6 +13,7 @@ import {  exists, expire, get, incr, remove, set,ttl } from "../../../pkg/servic
 import { EmailSubject } from "../../../lib/enum/subject.enum.js"
 import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, REFRESH_TOKEN_SIGNATURE } from "../../../config.js"
 import { verifyTokenId } from "../../../lib/utils/verifyTokenId.js"
+import { generateUsername } from "../../../lib/utils/generateUsername.js"
 import { providerEnum } from "../../../lib/enum/provider.enum.js"
 
 const OTP_TTL_SECONDS = 120
@@ -101,7 +102,10 @@ export const signupWithGoogleService=async(body,lang)=>{
 
   let user = await findOne({model:UserModel , filter:{email}})
   if(!user){
-    user = await createOne({model:UserModel , data:{...splitGoogleName(payload) , email , provider:providerEnum.GMAIL}})
+    const { firstName, lastName } = splitGoogleName(payload)
+    // every new user gets a username so people can send him messages with a share link
+    const username = await generateUsername(firstName)
+    user = await createOne({model:UserModel , data:{firstName , lastName , username , email , provider:providerEnum.GMAIL}})
   } else if(user.provider === providerEnum.SYSTEM){
     throw new ConflictException(t("STANDARD_LOGIN_ERROR",lang), lang)
   }
@@ -136,7 +140,9 @@ export const confirmOtpService= async(body,lang)=>{
   await remove({key:profileDataKey(email)})
   await remove({key:sendOtpKey(email)})
   await remove({key:resendTrialKey(email)})
-  return await createOne({model:UserModel , data:{userName:isExisted.userName , email , password:isExisted.password , phone:isExisted.phone, age:isExisted.age , gender:isExisted.gender}})
+  // userName is "first last" -> we take the first word to build the username (ex: nour_4821)
+  const username = await generateUsername(isExisted.userName.split(" ")[0])
+  return await createOne({model:UserModel , data:{userName:isExisted.userName , username , email , password:isExisted.password , phone:isExisted.phone, age:isExisted.age , gender:isExisted.gender}})
 }
 
 /**

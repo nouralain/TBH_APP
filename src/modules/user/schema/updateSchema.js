@@ -5,9 +5,14 @@ const updateBody = (lang) =>
   z
     .strictObject({
       userName: generalValidationFields.userName(lang),
+      // the user can change his share-link handle (ex: nour_4821 -> nour.ahmed)
+      // the service checks that nobody else already has it
+      username: generalValidationFields.username(lang),
       phone: generalValidationFields.phone(lang),
       age: generalValidationFields.age(lang),
       gender: generalValidationFields.gender(lang),
+      // privacy setting: false = "I don't want anonymous messages"
+      allowAnonymousMessages: z.boolean(),
     })
     .partial()
     .refine((data) => Object.keys(data).length > 0, {
@@ -21,3 +26,11 @@ const updateBody = (lang) =>
     });
 
 export const updateSchema = (lang) => z.object({ body: updateBody(lang) });
+
+// GET /api/users/public/:username
+export const publicProfileSchema = (lang) =>
+  z.object({
+    params: z.strictObject({
+      username: generalValidationFields.username(lang),
+    }),
+  });

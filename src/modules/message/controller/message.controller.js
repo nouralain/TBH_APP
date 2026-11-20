@@ -1,6 +1,8 @@
+import { languagesEnum } from "../../../lib/enum/languages.enum.js";
 import { getLang } from "../../../lib/utils/getLanguage.js";
 import successResponse from "../../../pkg/successResponse.js"
 import * as service from "../service/message.service.js"
+import { translations } from "../translations.message.js";
 
 export const createMessage = async (req, res) => {
   const lang = getLang(req)
@@ -9,27 +11,22 @@ export const createMessage = async (req, res) => {
   successResponse(res, { message: "done", status: 201, data })
 }
 
-export const updateMessage = async (req, res) => {
-  const lang = getLang(req);
-  const data = await service.updateService(req.validate.params.noteId, req.validate.body, req.user.id, lang);
-  successResponse(res, { message: "done", data });
-};
-
-export const replaceMessage = async (req, res) => {
-  const lang = getLang(req);
-  const data = await service.replaceService(req.validate.params.noteId, req.validate.body, req.user.id, lang);
-  successResponse(res, { message: "done", data });
-};
-
-export const updateAllTitles = async (req, res) => {
-  const data = await service.updateAllTitlesService(req.validate.body.title, req.user.id);
-  successResponse(res, { message: "done", data });
-};
-
 export const deleteMessage = async (req, res) => {
   const lang = getLang(req);
   await service.deleteService(req.validate.params.noteId, req.user.id, lang);
   successResponse(res, { message: "done", status: 200 });
+};
+
+export const blockSender = async (req, res) => {
+  const lang = getLang(req);
+  await service.blockSenderService(req.validate.params.noteId, req.user.id, lang);
+  successResponse(res, { message: lang === languagesEnum.EN ? translations.senderBlocked.EN : translations.senderBlocked.AR });
+};
+
+export const unblockSender = async (req, res) => {
+  const lang = getLang(req);
+  await service.unblockSenderService(req.validate.params.noteId, req.user.id, lang);
+  successResponse(res, { message: lang === languagesEnum.EN ? translations.senderUnblocked.EN : translations.senderUnblocked.AR });
 };
 
 export const paginateMessages = async (req, res) => {
