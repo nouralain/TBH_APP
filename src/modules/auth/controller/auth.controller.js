@@ -7,41 +7,29 @@ import { translations } from "../translations.js"
 export const register =async (req,res,next)=>{
     const lang = getLang(req);
     const data=await registerService(req.validate.body ,lang)
-    console.log(data);
-    
-successResponse(res,{message:lang===languagesEnum.EN?translations.USER_CREATED.EN:translations.USER_CREATED.EN,status:201,data})
+    successResponse(res,{message:lang===languagesEnum.AR?translations.USER_CREATED.AR:translations.USER_CREATED.EN,status:201,data})
 }
 
 export const login =async (req,res,next)=>{
     const lang = getLang(req);
-
     const data=await loginService(req.validate.body,lang)
-successResponse(res,{data:data})
+    successResponse(res,{data})
 }
 
 export const confirmOtp = async(req,res,next)=>{
     const lang = getLang(req);
-
     const data=await confirmOtpService(req.validate.body,lang)
-
-    successResponse(res,{data:data})
-
+    successResponse(res,{data})
 }
+
 export const resendOtp = async(req,res,next)=>{
     const lang = getLang(req);
-
     const data=await resendOtpService(req.validate.body,lang)
-
-    successResponse(res,{data:data})
-
+    successResponse(res,{data})
 }
+
 export const signUpWithGoogle = async(req,res,next)=>{
     const lang = getLang(req);
-
-    const data=await signupWithGoogleService(req.body,lang)
-console.log(data);
-
-    successResponse(res,{data:data})
-
+    const data=await signupWithGoogleService(req.validate.body,lang)
+    successResponse(res,{data})
 }
-

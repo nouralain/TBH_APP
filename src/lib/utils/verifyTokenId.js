@@ -1,23 +1,21 @@
 import { OAuth2Client } from "google-auth-library";
 import { WEB_CLIENT_ID } from "../../config.js";
-import { BadRequestException } from "../../pkg/errors/error.exception.js";
+import { UnauthorizedException } from "../../pkg/errors/error.exception.js";
 
 const client = new OAuth2Client();
-export async function verifyTokenId(idToken) {
+
+/** Verifies a Google idToken and returns its payload. Throws 401 on any failure. */
+export async function verifyTokenId(idToken, lang) {
+  let payload;
   try {
-    const ticket = await client.verifyIdToken({
-        idToken,
-        audience: WEB_CLIENT_ID,  // Specify the WEB_CLIENT_ID of the app that accesses the backend
-        // Or, if multiple clients access the backend:
-        //[WEB_CLIENT_ID_1, WEB_CLIENT_ID_2, WEB_CLIENT_ID_3]
-    });
-  
-   const payload =  ticket.getPayload();
-    
-   if(!payload.email_verified)throw BadRequestException("Email not verified")
-      return payload
+    const ticket = await client.verifyIdToken({ idToken, audience: WEB_CLIENT_ID });
+    payload = ticket.getPayload();
   } catch (error) {
-console.log(error);
-    
+    throw new UnauthorizedException("Invalid Google token", lang);
   }
+
+  if (!payload?.email || !payload.email_verified) {
+    throw new UnauthorizedException("Google email is not verified", lang);
+  }
+  return payload;
 }

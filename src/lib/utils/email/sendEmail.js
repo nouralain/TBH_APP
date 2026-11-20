@@ -23,10 +23,9 @@ export const sendEmail =async({ to , subject , html,cc,bcc,text,attachments=[]})
           text
         });
       
-        console.log("Message sent: %s", info.messageId);
-        // Preview URL is only available when using an Ethereal test account
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        return info;
       } catch (err) {
-        console.error("Error while sending mail:", err);
+        console.error("Error while sending mail:", err.message);
+        throw err; // let the caller decide; a silent failure leaves the user waiting for an OTP that never comes
       }
 }

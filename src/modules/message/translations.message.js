@@ -1,7 +1,7 @@
 export const translations ={
         notFound: {
-            AR: "المستقبل غير موجود",
-          EN: "Receiver not found",
+            AR: "الرسالة غير موجودة",
+          EN: "Message not found",
         },
        
           receiverNotFound: {
@@ -24,6 +24,10 @@ export const translations ={
             AR: "لا تملك صلاحية عرض هذه الرسالة",
             EN: "You are not allowed to view this message",
           },
+          notOwner:{
+            AR:"لست المرسل للرساله",
+            EN: "You are not owner",
+          }
       
    
 }

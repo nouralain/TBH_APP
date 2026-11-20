@@ -26,8 +26,7 @@ return jwt.sign(payload , secret , {...opts})
 
 export const decodeToken = async({authorization,tokenType})=>{
     const payload = await verifyToken({token:authorization , secret:getTokenSignature({tokenType})})
-    console.log(payload);
-    
+
     if(!payload?.sub) throw new BadRequestException()
     const account = await findById({model:UserModel , id:payload.sub})
 if(!account) throw new NotFoundException("Profile not found")

@@ -27,6 +27,10 @@ export const translations ={
         EN: "Maximum resend OTP attempts exceeded. Please try again later.",
         AR: "لقد تجاوزت الحد الأقصى لمحاولات إعادة إرسال رمز التحقق. يرجى المحاولة لاحقاً."
     },
+    GOOGLE_ACCOUNT_LOGIN: {
+        EN: "This email is registered with Google. Please sign in with Google.",
+        AR: "هذا البريد الإلكتروني مسجل عبر جوجل. يرجى تسجيل الدخول باستخدام جوجل."
+    },
     STANDARD_LOGIN_ERROR:
     {
         EN: "This email is already registered using standard login. Please use your password.",
