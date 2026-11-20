@@ -1,8 +1,8 @@
 import { config } from "dotenv"
 import { resolve } from "node:path"
 
-const NODE_ENV = process.env.NODE_ENV ?? "development"
-config({path:resolve(`.env.${NODE_ENV}`)})
+const ENV = process.env.NODE_ENV ?? "development"
+config({path:resolve(`.env.${ENV}`)})
 export const PORT = parseInt(process.env.PORT ?? "3000");
 export const DB_URI = process.env.DB_URI
 export const ENC_KEY = process.env.ENC_KEY
@@ -23,3 +23,8 @@ export const IP_HASH_SECRET = process.env.IP_HASH_SECRET ?? process.env.ACCESS_T
 // how many proxies sit in front of the app (e.g. "1" behind nginx / a PaaS router).
 // leave empty locally -> req.ip is the socket address.
 export const TRUST_PROXY = process.env.TRUST_PROXY
+export const NODE_ENV = process.env.NODE_ENV ?? "development"
+export const IS_PRODUCTION = NODE_ENV === "production"
+// E3: comma-separated list of frontend origins allowed by CORS, ex: "http://localhost:4200,https://tbh.app"
+// empty -> every origin is allowed in development, none (only same-origin / no-origin tools like Postman) in production
+export const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? "").split(",").map((origin) => origin.trim()).filter(Boolean)

@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { APP_NAME, MAILER_EMAIL, MAILER_PASSKEY } from "../../../config.js";
+import { logger } from "../logger.js";
 
 // Create a transporter using SMTP
 const transporter = nodemailer.createTransport({
@@ -25,7 +26,7 @@ export const sendEmail =async({ to , subject , html,cc,bcc,text,attachments=[]})
       
         return info;
       } catch (err) {
-        console.error("Error while sending mail:", err.message);
+        logger.error("Error while sending mail:", err.message);
         throw err; // let the caller decide; a silent failure leaves the user waiting for an OTP that never comes
       }
 }

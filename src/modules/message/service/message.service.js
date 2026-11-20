@@ -1,13 +1,14 @@
 
 import { MessageModel } from "../../../DB/model/message.model.js";
 import { UserModel } from "../../../DB/model/user.model.js";
-import { languagesEnum } from "../../../lib/enum/languages.enum.js";
+import { t } from "../../../lib/utils/translate.js";
 import { BadRequestException, ForbiddenException, NotFoundException, TooManyRequestsException } from "../../../pkg/errors/error.exception.js";
 import { countDocuments, createOne, deleteOne, find, findById, findOne, updateOne } from "../../../pkg/services/mongoose.services.js";
 import { translations } from "../translations.message.js";
 import { escapeRegex } from "../../../lib/utils/escapeRegex.js";
 import { containsBadWord, containsLink } from "../../../lib/utils/moderation.js";
 import { consume, rateLimitKey } from "../../../lib/utils/rateLimiter.js";
+import { logger } from "../../../lib/utils/logger.js";
 
 // D2: one sender (user or guest IP) -> one receiver: 3 messages / hour
 const PER_RECEIVER_LIMIT = { windowSec: 60 * 60, max: 3 }
@@ -77,10 +78,10 @@ const formatMessage = (message, viewerId) => {
 
 // small helper so we don't repeat the same 3 lines in every service
 const notFoundError = (lang) =>
-  new NotFoundException(lang === languagesEnum.EN ? translations.notFound.EN : translations.notFound.AR, lang)
+  new NotFoundException(tr("notFound", lang), lang)
 
 // picks the EN or AR text of a translations entry
-const tr = (key, lang) => (lang === languagesEnum.AR ? translations[key].AR : translations[key].EN)
+const tr = (key, lang) => t(translations, key, lang)
 
 // C3: every list endpoint returns the same shape { notes, total, page, pages }
 // (an empty search result is just notes: [] -> never a 404)
@@ -126,14 +127,14 @@ export const createMessageService = async({title , content , receiverId , receiv
 
   //2
   if(!receiver) throw new NotFoundException(
-    lang === languagesEnum.AR ? translations.receiverNotFound.AR : translations.receiverNotFound.EN,
+    tr("receiverNotFound", lang),
     lang
   );
 
   //3
   if (senderId && String(receiver._id) === String(senderId)) {
     throw new BadRequestException(
-      lang === languagesEnum.AR ? translations.cannotSendToSelf.AR : translations.cannotSendToSelf.EN,
+      tr("cannotSendToSelf", lang),
       lang
     )
   }
@@ -145,7 +146,7 @@ export const createMessageService = async({title , content , receiverId , receiv
   const isBlockedGuest = !senderId && senderIpHash && (receiver.blockedGuests || []).includes(senderIpHash)
   if (isBlockedUser || isBlockedGuest) {
     throw new ForbiddenException(
-      lang === languagesEnum.AR ? translations.cannotSendToUser.AR : translations.cannotSendToUser.EN,
+      tr("cannotSendToUser", lang),
       lang
     )
   }
@@ -156,7 +157,7 @@ export const createMessageService = async({title , content , receiverId , receiv
   //6  allowAnonymousMessages === false (not just "falsy") so old users without the field still accept them
   if (finalIsAnonymous && receiver.allowAnonymousMessages === false) {
     throw new ForbiddenException(
-      lang === languagesEnum.AR ? translations.anonymousNotAllowed.AR : translations.anonymousNotAllowed.EN,
+      tr("anonymousNotAllowed", lang),
       lang
     )
   }
@@ -176,7 +177,7 @@ export const createMessageService = async({title , content , receiverId , receiv
   try {
     perReceiver = await consume({ key: rateLimitKey("msg-receiver", sender, String(receiver._id)), ...PER_RECEIVER_LIMIT })
   } catch (error) {
-    console.error("per-receiver rate limit skipped, Redis unavailable:", error.message)
+    logger.warn("per-receiver rate limit skipped, Redis unavailable:", error.message)
   }
   if (perReceiver && !perReceiver.allowed) {
     throw new TooManyRequestsException(tr("tooManyToReceiver", lang), lang, perReceiver.retryAfter)
@@ -306,7 +307,7 @@ export const getOneService = async(noteId, userId, lang)=>{
   const isSender = String(getId(note.senderId)) === String(userId)
   const isReceiver = String(getId(note.receiverId)) === String(userId)
   if (!isSender && !isReceiver) {
-    throw new ForbiddenException(lang === languagesEnum.EN ? translations.notParticipant.EN : translations.notParticipant.AR, lang)
+    throw new ForbiddenException(tr("notParticipant", lang), lang)
   }
 
   //3

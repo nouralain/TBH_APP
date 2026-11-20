@@ -5,8 +5,9 @@ import { getLang } from "../utils/getLanguage.js";
 
 const JWT_ERRORS = ["JsonWebTokenError", "TokenExpiredError", "NotBeforeError"];
 
-const attachUser = async (req, tokenType) => {
-    const { account, payload } = await decodeToken({ authorization: req.headers.authorization, tokenType });
+const attachUser = async (req, tokenType, lang) => {
+    // E3: expects "Authorization: Bearer <token>"
+    const { account, payload } = await decodeToken({ authorization: req.headers.authorization, tokenType, lang });
     req.user = account;
     req.payload = payload;
 };
@@ -20,7 +21,7 @@ export const authentication = ({ tokenType = tokenTypeEnum.ACCESS } = {}) => {
         const lang = getLang(req);
         try {
             if (!req.headers.authorization) throw new UnauthorizedException(null, lang);
-            await attachUser(req, tokenType);
+            await attachUser(req, tokenType, lang);
             next();
         } catch (error) {
             next(mapError(error, lang));
@@ -38,7 +39,7 @@ export const optionalAuthentication = ({ tokenType = tokenTypeEnum.ACCESS } = {}
         const lang = getLang(req);
         if (!req.headers.authorization) return next();
         try {
-            await attachUser(req, tokenType);
+            await attachUser(req, tokenType, lang);
             next();
         } catch (error) {
             next(mapError(error, lang));

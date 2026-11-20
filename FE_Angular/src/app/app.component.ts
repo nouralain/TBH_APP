@@ -19,7 +19,6 @@ export class AppComponent {
     this.authService.authState.subscribe((user: any) => {
       this.user = user;
       this.loggedIn = (user != null);
-      console.log({ user });
       this.handelSignIn(this.user.idToken)
     });
 
@@ -28,7 +27,6 @@ export class AppComponent {
   handelSignIn(idToken: any) {
 
     this._authService.loginWithGmail({ idToken }).subscribe(data => {
-      console.log({ data });
     }
     )
   }

@@ -168,7 +168,26 @@ Receiver can block a named sender (by user id). For anonymous, optionally block 
 
 ---
 
-## Epic E — Security & housekeeping
+## Epic E — Security & housekeeping — ✅ DONE
+> On branch `epic-e-security-housekeeping`.
+> - **E1:** `src/lib/utils/logger.js` — debug/info silent in production, warn/error always. Every `console.*` replaced; DB connection
+>   errors log only the message (the URI can hold the password). Angular no longer logs the Google user / tokens.
+> - **E2:** `CastError` → 400, `ValidationError` → 400 (+ `fields`), `VersionError` → 409, duplicate key `11000` → 409 (field names only,
+>   never the value). In production a 500 is just `{ status, message }`, no `cause` / detail.
+> - **E3:** `helmet()`; CORS allow-list from `CORS_ORIGINS` (comma-separated; empty = all origins in dev, none in prod; no-Origin tools
+>   like Postman always pass). `Authorization: Bearer <token>` parsed (bare token still accepted, other schemes rejected). Angular sends Bearer.
+> - **E4:** `DELETE /api/users` deletes received messages, anonymizes sent ones (`senderId` removed, `isAnonymous: true`), pulls the user
+>   from others' `blockedUsers`, revokes the current session.
+> - **E5:** access + refresh token of one login share a `jti`. `POST /api/users/logout` revokes it (Redis denylist until the refresh token
+>   would expire); `{ "allDevices": true }` sets `credentialsChangedAt` → all older tokens rejected. `rotate-token` revokes the old pair.
+>   Deleted account → 401. Redis down: refresh tokens 503, access tokens pass (short-lived, D4 fail-open).
+>   Tokens from before E5 have no `jti` → plain logout falls back to "all devices" for them.
+>   `iat` is in seconds, so a token issued in the same second *before* a logout-all still works until it expires.
+> - **E6:** `decrypt()` added; `GET /api/users/profile` returns the phone decrypted (still hidden everywhere else).
+> - **E7:** `t(dictionary, key, lang)` + shared `tc(key, lang)` in `src/lib/utils/translate.js`; all `"done"`, `"Profile not found"`,
+>   Google token errors, 404 route, update-schema message are translated; inline `lang === ... ? .AR : .EN` ternaries removed.
+> - **E8:** `README.md` (setup, env vars, endpoints, errors), `.env.example`, Postman collection rebuilt (23 requests, `{{baseUrl}}`,
+>   collection-level Bearer, login/rotate save tokens automatically).
 
 ### E1. Remove sensitive logs — P0 · S
 `console.log` of JWT payloads, Google idTokens, encryption IVs, user docs, `trials`, etc. Replace with a small logger that's silent in production.
