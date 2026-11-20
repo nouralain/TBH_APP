@@ -8,10 +8,15 @@ import { Router } from '@angular/router';
 export class AuthService {
 
   baseURL = `http://localhost:3000/`;
-  token: any = `Hamada__` + localStorage.getItem("token");
   constructor(private _HttpClient: HttpClient, private _Router: Router) {
-    this.token = `Hamada__` + localStorage.getItem("token")
   }
+
+  // E3: the backend expects the standard "Authorization: Bearer <accessToken>" header
+  authHeaders(): HttpHeaders {
+    const token = localStorage.getItem("token");
+    return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+  }
+
   loginWithGmail(data: any): Observable<any> {
     return this._HttpClient.post(this.baseURL + "api/auth/signup-with-google", data);
   }

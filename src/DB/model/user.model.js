@@ -83,7 +83,11 @@ const userScheme = new Schema({
     // hidden from the client for the same reason as blockedUsers
     blockedGuests:[{
         type:String,
-    }]
+    }],
+    // E5: "log out of every device" -> every token issued before this date is rejected
+    credentialsChangedAt:{
+        type:Date,
+    },
 
 
 },{
@@ -96,6 +100,7 @@ toObject:{virtuals:true,
         delete ret.password;
         delete ret.phone;
         delete ret.__v;
+        delete ret.credentialsChangedAt;
         // show only HOW MANY users he blocked, never WHO (see blockedUsers above)
         ret.blockedCount = (ret.blockedUsers?.length ?? 0) + (ret.blockedGuests?.length ?? 0);
         delete ret.blockedUsers;
@@ -108,6 +113,7 @@ toJSON:{virtuals:true,
         delete ret.password;
         delete ret.phone;
         delete ret.__v;
+        delete ret.credentialsChangedAt;
         // show only HOW MANY users he blocked, never WHO (see blockedUsers above)
         ret.blockedCount = (ret.blockedUsers?.length ?? 0) + (ret.blockedGuests?.length ?? 0);
         delete ret.blockedUsers;

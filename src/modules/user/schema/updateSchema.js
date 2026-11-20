@@ -1,5 +1,15 @@
 import {z} from "zod";
 import { generalValidationFields } from "../../../lib/utils/generalValidation.js";
+import { t } from "../../../lib/utils/translate.js";
+import { translations } from "../translations.user.js";
+
+// POST /api/users/logout -> { allDevices?: boolean }
+export const logoutSchema = (lang) =>
+  z.object({
+    body: z.strictObject({
+      allDevices: z.boolean({ error: t(translations, "ALL_DEVICES_INVALID", lang) }).optional(),
+    }),
+  });
 
 const updateBody = (lang) =>
   z
@@ -16,7 +26,7 @@ const updateBody = (lang) =>
     })
     .partial()
     .refine((data) => Object.keys(data).length > 0, {
-      message: "At least one field must be provided for update",
+      message: t(translations, "AT_LEAST_ONE_FIELD", lang),
     })
     // userName is a virtual; findByIdAndUpdate needs the real fields.
     .transform(({ userName, ...rest }) => {

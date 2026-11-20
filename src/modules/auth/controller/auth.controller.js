@@ -1,4 +1,4 @@
-import { languagesEnum } from "../../../lib/enum/languages.enum.js"
+import { t } from "../../../lib/utils/translate.js"
 import { getLang } from "../../../lib/utils/getLanguage.js"
 import { hashIp } from "../../../lib/utils/ipHash.js"
 import successResponse from "../../../pkg/successResponse.js"
@@ -8,7 +8,7 @@ import { translations } from "../translations.js"
 export const register =async (req,res,next)=>{
     const lang = getLang(req);
     const data=await registerService(req.validate.body ,lang)
-    successResponse(res,{message:lang===languagesEnum.AR?translations.USER_CREATED.AR:translations.USER_CREATED.EN,status:201,data})
+    successResponse(res,{message:t(translations,"USER_CREATED",lang),status:201,data})
 }
 
 export const login =async (req,res,next)=>{

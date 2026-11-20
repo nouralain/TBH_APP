@@ -1,10 +1,10 @@
 import { UserModel } from "../../../DB/model/user.model.js"
 import { encrypt } from "../../../pkg/security/encrypt.security.js"
 import { compare, hash } from "../../../pkg/security/hash.security.js"
-import { generateToken } from "../../../pkg/security/token.security.js"
+import { generateToken, newSessionId } from "../../../pkg/security/token.security.js"
 import { createOne, findOne } from "../../../pkg/services/mongoose.services.js"
 import { BadRequestException, ConflictException, TooManyRequestsException, WrongCredintials } from "../../../pkg/errors/error.exception.js"
-import { languagesEnum } from "../../../lib/enum/languages.enum.js"
+import { t as translate } from "../../../lib/utils/translate.js"
 import { translations } from "../translations.js"
 import Crypto from "node:crypto"
 import { sendEmail } from "../../../lib/utils/email/sendEmail.js"
@@ -27,7 +27,7 @@ const MAX_OTP_ATTEMPTS = 5
 const MAX_LOGIN_ATTEMPTS = 5
 const LOGIN_LOCK_SECONDS = 15 * 60
 
-const t = (key, lang) => lang === languagesEnum.AR ? translations[key].AR : translations[key].EN
+const t = (key, lang) => translate(translations, key, lang)
 
 export const generateCode = ()=>{
   return Crypto.randomInt(100000,1000000).toString()
@@ -152,9 +152,11 @@ export const signupWithGoogleService=async(body,lang)=>{
   return await getLoginCredintials({payload:{userName:user.userName , sub:user.id}})
 }
 
+// E5: both tokens of one login share a jti (session id) -> logout / rotation revokes the pair at once
 export const getLoginCredintials = async({payload={} , opts={}})=>{
-  const accessToken= await generateToken({payload,opts:{ ...opts, expiresIn:ACCESS_TOKEN_EXPIRY }})
-  const refreshToken= await generateToken({payload,secret:REFRESH_TOKEN_SIGNATURE,opts:{ ...opts, expiresIn:REFRESH_TOKEN_EXPIRY }})
+  const jwtid = newSessionId()
+  const accessToken= await generateToken({payload,opts:{ ...opts, jwtid, expiresIn:ACCESS_TOKEN_EXPIRY }})
+  const refreshToken= await generateToken({payload,secret:REFRESH_TOKEN_SIGNATURE,opts:{ ...opts, jwtid, expiresIn:REFRESH_TOKEN_EXPIRY }})
   return {accessToken,refreshToken}
 }
 

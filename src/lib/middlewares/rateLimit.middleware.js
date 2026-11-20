@@ -1,6 +1,7 @@
 import { consume, isRedisReady, rateLimitKey } from "../utils/rateLimiter.js"
 import { hashIp } from "../utils/ipHash.js"
 import { getLang } from "../utils/getLanguage.js"
+import { logger } from "../utils/logger.js"
 import { ServiceUnavailableException, TooManyRequestsException } from "../../pkg/errors/error.exception.js"
 
 // we never put the raw IP in Redis, only its HMAC (same one used for blocking guests)
@@ -29,7 +30,7 @@ export const rateLimit = ({ keyPrefix, windowSec, max, keyBy = byUserOrIp, failC
     try {
       result = await consume({ key: rateLimitKey(keyPrefix, keyBy(req)), windowSec, max: limit })
     } catch (error) {
-      console.error(`rate limit "${keyPrefix}" skipped, Redis unavailable:`, error.message)
+      logger.warn(`rate limit "${keyPrefix}" skipped, Redis unavailable:`, error.message)
       return failClosed ? next(new ServiceUnavailableException(null, lang)) : next()
     }
 

@@ -1,6 +1,6 @@
-import { languagesEnum } from "../../../lib/enum/languages.enum.js";
 import { getLang } from "../../../lib/utils/getLanguage.js";
 import { hashIp } from "../../../lib/utils/ipHash.js";
+import { t, tc } from "../../../lib/utils/translate.js";
 import successResponse from "../../../pkg/successResponse.js"
 import * as service from "../service/message.service.js"
 import { translations } from "../translations.message.js";
@@ -11,50 +11,50 @@ export const createMessage = async (req, res) => {
   // guests only: the HMAC of their IP, so the receiver can block them later (C6)
   const senderIpHash = req.user ? undefined : hashIp(req.ip)
   const data = await service.createMessageService(req.validate.body, req.user?.id, lang, senderIpHash)
-  successResponse(res, { message: "done", status: 201, data })
+  successResponse(res, { message: tc("MESSAGE_SENT", lang), status: 201, data })
 }
 
 export const reportMessage = async (req, res) => {
   const lang = getLang(req);
   await service.reportService(req.validate.params.noteId, req.user.id, req.validate.body.reason, lang);
-  successResponse(res, { message: lang === languagesEnum.EN ? translations.messageReported.EN : translations.messageReported.AR });
+  successResponse(res, { message: t(translations, "messageReported", lang) });
 };
 
 export const deleteMessage = async (req, res) => {
   const lang = getLang(req);
   await service.deleteService(req.validate.params.noteId, req.user.id, lang);
-  successResponse(res, { message: "done", status: 200 });
+  successResponse(res, { message: tc("MESSAGE_DELETED", lang), status: 200 });
 };
 
 export const blockSender = async (req, res) => {
   const lang = getLang(req);
   await service.blockSenderService(req.validate.params.noteId, req.user.id, lang);
-  successResponse(res, { message: lang === languagesEnum.EN ? translations.senderBlocked.EN : translations.senderBlocked.AR });
+  successResponse(res, { message: t(translations, "senderBlocked", lang) });
 };
 
 export const unblockSender = async (req, res) => {
   const lang = getLang(req);
   await service.unblockSenderService(req.validate.params.noteId, req.user.id, lang);
-  successResponse(res, { message: lang === languagesEnum.EN ? translations.senderUnblocked.EN : translations.senderUnblocked.AR });
+  successResponse(res, { message: t(translations, "senderUnblocked", lang) });
 };
 
 export const paginateMessages = async (req, res) => {
   const data = await service.paginateService(req.validate.query, req.user.id);
-  successResponse(res, { message: "done", data });
+  successResponse(res, { message: tc("DONE", getLang(req)), data });
 };
 
 export const getMessage = async (req, res) => {
   const lang = getLang(req);
   const data = await service.getOneService(req.validate.params.id, req.user.id, lang);
-  successResponse(res, { message: "done", data });
+  successResponse(res, { message: tc("DONE", lang), data });
 };
 
 export const getMessagesByContent = async (req, res) => {
   const data = await service.getByContentService(req.validate.query, req.user.id);
-  successResponse(res, { message: "done", data });
+  successResponse(res, { message: tc("DONE", getLang(req)), data });
 };
 
 export const getAllMessages = async (req, res) => {
   const data = await service.getAllService(req.validate.query, req.user.id);
-  successResponse(res, { message: "done", data });
+  successResponse(res, { message: tc("DONE", getLang(req)), data });
 };
