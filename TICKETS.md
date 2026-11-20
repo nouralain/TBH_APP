@@ -133,7 +133,18 @@ Receiver can block a named sender (by user id). For anonymous, optionally block 
 
 ---
 
-## Epic D — Rate limiting (Redis, already in the stack)
+## Epic D — Rate limiting (Redis, already in the stack) — ✅ DONE
+> On branch `epic-d-rate-limiting`.
+> - **D1:** `rateLimit({ keyPrefix, windowSec, max, keyBy, failClosed })` in `src/lib/middlewares/rateLimit.middleware.js`, fixed window
+>   (INCR + EXPIRE in one Lua script, `src/lib/utils/rateLimiter.js`). 429 + `Retry-After` + `RateLimit-*` headers, EN/AR message.
+>   Keys use the IP's HMAC (`hashIp`), never the raw IP; `max` can be a function of `req`.
+> - **D2:** global 100/min per IP; `POST /api/messages` 5/10 min (guest, IP) or 20/10 min (user); 3/hour per sender → receiver
+>   (in `createMessageService`, keyed by the receiver's `_id` so id/username share one counter); register & resend-otp 5/hour per IP;
+>   signup-with-google 20/15 min per IP (extra). Login: 5 failures per email + IP → locked 15 min (success clears it).
+> - **D3:** 5 wrong OTP guesses → the OTP is deleted, user must resend. A new OTP resets the counter. Resend's `trials` check was already `>=`.
+> - **D4:** Redis connection failure now stops startup; an `error` listener keeps a dropped connection from crashing the process.
+>   While Redis is down, auth routes answer 503 (`requireRedis` + `failClosed`), message/global limits let requests through.
+> - Not run end to end yet: per-receiver limit and OTP lock (need a real receiver / signup email) → check with Postman.
 
 ### D1. Generic Redis rate-limit middleware — P0 · M
 `rateLimit({ keyPrefix, windowSec, max, keyBy })` using `INCR` + `EXPIRE` (fixed window) or a sliding window with a sorted set. Returns 429 + `Retry-After` header, translated message. Key by user id when authenticated, else by IP (`app.set("trust proxy", ...)` when deployed).

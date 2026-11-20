@@ -8,6 +8,10 @@ export const translations ={
             AR: "المستلم غير موجود",
             EN: "Receiver not found",
           },
+          tooManyToReceiver: {
+            AR: "لقد أرسلت رسائل كثيرة لهذا المستخدم، يرجى المحاولة لاحقاً",
+            EN: "You've sent too many messages to this user, please try again later",
+          },
           cannotSendToSelf: {
             AR: "لا يمكنك إرسال رسالة لنفسك",
             EN: "You cannot send a message to yourself",

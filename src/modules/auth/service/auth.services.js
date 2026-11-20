@@ -3,7 +3,7 @@ import { encrypt } from "../../../pkg/security/encrypt.security.js"
 import { compare, hash } from "../../../pkg/security/hash.security.js"
 import { generateToken } from "../../../pkg/security/token.security.js"
 import { createOne, findOne } from "../../../pkg/services/mongoose.services.js"
-import { BadRequestException, ConflictException, WrongCredintials } from "../../../pkg/errors/error.exception.js"
+import { BadRequestException, ConflictException, TooManyRequestsException, WrongCredintials } from "../../../pkg/errors/error.exception.js"
 import { languagesEnum } from "../../../lib/enum/languages.enum.js"
 import { translations } from "../translations.js"
 import Crypto from "node:crypto"
@@ -15,11 +15,17 @@ import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, REFRESH_TOKEN_SIGNATURE } fr
 import { verifyTokenId } from "../../../lib/utils/verifyTokenId.js"
 import { generateUsername } from "../../../lib/utils/generateUsername.js"
 import { providerEnum } from "../../../lib/enum/provider.enum.js"
+import { consume, rateLimitKey } from "../../../lib/utils/rateLimiter.js"
 
 const OTP_TTL_SECONDS = 120
 const PROFILE_TTL_SECONDS = 500
 const MAX_RESEND_ATTEMPTS = 3
 const RESEND_WINDOW_SECONDS = 300
+// D3: wrong OTP guesses allowed before the code is thrown away
+const MAX_OTP_ATTEMPTS = 5
+// D2: failed logins per (email + IP) before the pair is locked, and for how long
+const MAX_LOGIN_ATTEMPTS = 5
+const LOGIN_LOCK_SECONDS = 15 * 60
 
 const t = (key, lang) => lang === languagesEnum.AR ? translations[key].AR : translations[key].EN
 
@@ -30,6 +36,8 @@ export const generateCode = ()=>{
 export const sendOtpKey =(email)=>`User::${email}::${EmailSubject.sentOtp}`
 export const profileDataKey =(email)=>`User::${email}::Profile-data`
 export const resendTrialKey =(email)=>`User::${email}::trials`
+export const otpAttemptsKey =(email)=>`User::${email}::otp-attempts`
+const loginFailsKey =(email , ipHash)=>rateLimitKey("login-fails", email.toLowerCase(), ipHash ?? "no-ip")
 
 /**
  * 1. generate random otp
@@ -44,6 +52,8 @@ const generateOtpAndSendEmail = async(email)=>{
     value:await hash({plainText:generatedOtp}),
     ttl:OTP_TTL_SECONDS
   })
+  // a new code gets a fresh set of attempts (D3)
+  await remove({key:otpAttemptsKey(email)})
   await sendEmail({
     to:email,
     subject:"Send otp",
@@ -67,17 +77,45 @@ export const registerService =async (body,lang)=>{
   await generateOtpAndSendEmail(email)
 }
 
-export const loginService=async(body,lang)=>{
+/**
+ * D2: login lock -> counted per (email + IP):
+ * - another IP can still log in to the same account (an attacker can't lock the real owner out)
+ * - one IP can't brute-force one account
+ * every failure (unknown email or wrong password) counts, a success clears the counter.
+ * after MAX_LOGIN_ATTEMPTS failures the pair is locked for LOGIN_LOCK_SECONDS.
+ */
+const assertLoginNotLocked = async(key , lang)=>{
+  const fails = Number(await get({key})) || 0
+  if(fails >= MAX_LOGIN_ATTEMPTS){
+    throw new TooManyRequestsException(t("LOGIN_LOCKED",lang), lang, await ttl({key}))
+  }
+}
+
+const loginFailed = async(key , lang)=>{
+  const { count } = await consume({ key, windowSec: LOGIN_LOCK_SECONDS, max: MAX_LOGIN_ATTEMPTS })
+  // this failure was the last allowed one -> restart the window so the lock lasts the full 15 min
+  if(count >= MAX_LOGIN_ATTEMPTS){
+    await expire({key , ttl:LOGIN_LOCK_SECONDS})
+    return new TooManyRequestsException(t("LOGIN_LOCKED",lang), lang, LOGIN_LOCK_SECONDS)
+  }
+  return new WrongCredintials(undefined , lang)
+}
+
+export const loginService=async(body,lang,ipHash)=>{
   const {email , password} = body
+  const failsKey = loginFailsKey(email , ipHash)
+  await assertLoginNotLocked(failsKey , lang)
+
   const isExisted = await findOne({model:UserModel , filter:{email}})
-  if(!isExisted)throw new WrongCredintials(undefined , lang)
+  if(!isExisted)throw await loginFailed(failsKey , lang)
 
   // Accounts created with Google have no password.
   if(isExisted.provider !== providerEnum.SYSTEM) throw new BadRequestException(t("GOOGLE_ACCOUNT_LOGIN",lang), lang)
 
   const isMatched = await compare({plainText:password , hashText:isExisted.password})
-  if(!isMatched)throw new WrongCredintials(undefined , lang)
+  if(!isMatched)throw await loginFailed(failsKey , lang)
 
+  await remove({key:failsKey})
   return await getLoginCredintials({payload:{userName:isExisted.userName , sub:isExisted.id}})
 }
 
@@ -135,11 +173,22 @@ export const confirmOtpService= async(body,lang)=>{
   if(!storedOtp) throw new BadRequestException(t("EXPIRED_OTP",lang), lang)
 
   const isMatched =await compare({plainText:otp , hashText:storedOtp})
-  if (!isMatched) throw new BadRequestException(t("INVALID_OTP",lang), lang)
+  if (!isMatched) {
+    // D3: count wrong guesses (the counter dies with the code), after MAX_OTP_ATTEMPTS the code is deleted
+    // -> the user has to resend-otp, which itself is limited -> no brute-forcing the 6 digits
+    const { count } = await consume({ key: otpAttemptsKey(email), windowSec: OTP_TTL_SECONDS, max: MAX_OTP_ATTEMPTS })
+    if (count >= MAX_OTP_ATTEMPTS) {
+      await remove({key:sendOtpKey(email)})
+      await remove({key:otpAttemptsKey(email)})
+      throw new BadRequestException(t("OTP_TOO_MANY_ATTEMPTS",lang), lang)
+    }
+    throw new BadRequestException(t("INVALID_OTP",lang), lang)
+  }
 
   await remove({key:profileDataKey(email)})
   await remove({key:sendOtpKey(email)})
   await remove({key:resendTrialKey(email)})
+  await remove({key:otpAttemptsKey(email)})
   // userName is "first last" -> we take the first word to build the username (ex: nour_4821)
   const username = await generateUsername(isExisted.userName.split(" ")[0])
   return await createOne({model:UserModel , data:{userName:isExisted.userName , username , email , password:isExisted.password , phone:isExisted.phone, age:isExisted.age , gender:isExisted.gender}})

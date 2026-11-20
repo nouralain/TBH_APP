@@ -61,6 +61,23 @@ export class UnprocessableEntityException extends ApplicationException {
   }
 }
 
+// 429 Too Many Requests (D1) -> retryAfter (seconds) becomes the Retry-After header
+export class TooManyRequestsException extends ApplicationException {
+  constructor(message, lang = languagesEnum.EN, retryAfter) {
+    const defaultMsg = errorTranslation.tooManyRequests[lang] || errorTranslation.tooManyRequests.EN;
+    super(message || defaultMsg, 429, lang);
+    this.retryAfter = retryAfter;
+  }
+}
+
+// 503 Service Unavailable (D4: Redis is down)
+export class ServiceUnavailableException extends ApplicationException {
+  constructor(message, lang = languagesEnum.EN) {
+    const defaultMsg = errorTranslation.serviceUnavailable[lang] || errorTranslation.serviceUnavailable.EN;
+    super(message || defaultMsg, 503, lang);
+  }
+}
+
 // 500 Internal Server Error
 export class InternalServerErrorException extends ApplicationException {
   constructor(message, lang = languagesEnum.EN) {
